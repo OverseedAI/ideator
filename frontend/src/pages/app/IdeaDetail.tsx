@@ -28,6 +28,7 @@ export const IdeaDetail = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isRetrying, setIsRetrying] = useState(false);
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const loadIdea = async () => {
@@ -101,6 +102,20 @@ export const IdeaDetail = () => {
     } catch (err: any) {
       alert(err.response?.data?.error || "Failed to delete idea");
       setIsDeleting(false);
+    }
+  };
+
+  const handleRetry = async () => {
+    if (!id) return;
+
+    setIsRetrying(true);
+    try {
+      await ideaService.analyzeIdea(id);
+      // Reload the idea to get updated status
+      await loadIdea();
+    } catch (err: any) {
+      alert(err.response?.data?.error || "Failed to retry analysis");
+      setIsRetrying(false);
     }
   };
 
@@ -187,8 +202,18 @@ export const IdeaDetail = () => {
       )}
 
       {idea.status === "failed" && (
-        <div className="mb-8 rounded-lg bg-red-50 p-4 text-red-800">
-          Analysis failed. Please try again.
+        <div className="mb-8 rounded-lg bg-red-50 p-4">
+          <div className="flex items-center justify-between">
+            <span className="text-red-800">Analysis failed. Please try again.</span>
+            <Button
+              variant="primary"
+              onClick={handleRetry}
+              isLoading={isRetrying}
+              disabled={isRetrying}
+            >
+              Retry Analysis
+            </Button>
+          </div>
         </div>
       )}
 

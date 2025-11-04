@@ -46,6 +46,11 @@ export const analyzeIdea = async (ideaId: string, userId: string) => {
 
   const userProfile = user.profileData as UserProfileData | null;
 
+  // Delete existing analyses if retrying
+  await prisma.analysis.deleteMany({
+    where: { ideaId },
+  });
+
   // Update status to analyzing
   await prisma.idea.update({
     where: { id: ideaId },
