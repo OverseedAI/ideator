@@ -40,4 +40,17 @@
   .container-custom {
     @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
   }
+
+  .modern-list {
+    @apply list-none space-y-2;
+  }
+
+  .modern-list li {
+    @apply flex items-start gap-3 text-text-secondary;
+  }
+
+  .modern-list li::before {
+    content: '';
+    @apply mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary;
+  }
 }

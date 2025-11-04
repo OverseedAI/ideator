@@ -18,10 +18,10 @@ export const FeaturesSection = ({ content }: FeaturesSectionProps) => {
       <div className="space-y-6">
         <div>
           <h4 className="mb-3">Recommended Features</h4>
-          <ul className="grid gap-2 md:grid-cols-2">
+          <ul className="modern-list md:grid md:grid-cols-2">
             {content.features.map((feature, idx) => (
-              <li key={idx} className="text-text-secondary">
-                • {feature}
+              <li key={idx}>
+                {feature}
               </li>
             ))}
           </ul>

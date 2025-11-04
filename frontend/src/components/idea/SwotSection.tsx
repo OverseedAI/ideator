@@ -17,10 +17,10 @@ export const SwotSection = ({ content }: SwotSectionProps) => {
         <div className="grid gap-6 md:grid-cols-2">
           <div>
             <h4 className="mb-3 text-green-700">Strengths</h4>
-            <ul className="space-y-2">
+            <ul className="modern-list">
               {content.strengths.map((item, idx) => (
-                <li key={idx} className="text-text-secondary">
-                  • {item}
+                <li key={idx}>
+                  {item}
                 </li>
               ))}
             </ul>
@@ -28,10 +28,10 @@ export const SwotSection = ({ content }: SwotSectionProps) => {
 
           <div>
             <h4 className="mb-3 text-red-700">Weaknesses</h4>
-            <ul className="space-y-2">
+            <ul className="modern-list">
               {content.weaknesses.map((item, idx) => (
-                <li key={idx} className="text-text-secondary">
-                  • {item}
+                <li key={idx}>
+                  {item}
                 </li>
               ))}
             </ul>
@@ -39,10 +39,10 @@ export const SwotSection = ({ content }: SwotSectionProps) => {
 
           <div>
             <h4 className="mb-3 text-blue-700">Opportunities</h4>
-            <ul className="space-y-2">
+            <ul className="modern-list">
               {content.opportunities.map((item, idx) => (
-                <li key={idx} className="text-text-secondary">
-                  • {item}
+                <li key={idx}>
+                  {item}
                 </li>
               ))}
             </ul>
@@ -50,10 +50,10 @@ export const SwotSection = ({ content }: SwotSectionProps) => {
 
           <div>
             <h4 className="mb-3 text-orange-700">Threats</h4>
-            <ul className="space-y-2">
+            <ul className="modern-list">
               {content.threats.map((item, idx) => (
-                <li key={idx} className="text-text-secondary">
-                  • {item}
+                <li key={idx}>
+                  {item}
                 </li>
               ))}
             </ul>
