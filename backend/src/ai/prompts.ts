@@ -9,7 +9,20 @@ import {
   ViabilityContent,
 } from '../types';
 
-const formatUserContext = (profile: UserProfileData): string => {
+const formatUserContext = (profile?: UserProfileData): string => {
+  if (!profile) {
+    return `
+User Context:
+- Expertise: Not specified
+- Funding: Not specified
+- Followers: Not specified
+- LinkedIn: Not specified
+- Company: Not specified
+- Experience: Not specified
+- Industries: Not specified
+`.trim();
+  }
+
   return `
 User Context:
 - Expertise: ${profile.expertise?.join(', ') || 'Not specified'}

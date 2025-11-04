@@ -1,8 +1,16 @@
 import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/common/Card';
+import { Button } from '@/components/common/Button';
 
 export const Settings = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   return (
     <div>
@@ -52,6 +60,18 @@ export const Settings = () => {
             <p className="text-text-secondary">
               Additional settings coming soon...
             </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Account Actions</CardTitle>
+            <CardDescription>Manage your account</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button variant="danger" onClick={handleLogout}>
+              Logout
+            </Button>
           </CardContent>
         </Card>
       </div>
