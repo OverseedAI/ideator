@@ -21,9 +21,10 @@ export const NewIdea = () => {
     try {
       const idea = await ideaService.createIdea({ title, description });
 
-      // Trigger analysis
-      await ideaService.analyzeIdea(idea.id);
+      // Trigger analysis in the background (don't wait for it)
+      ideaService.analyzeIdea(idea.id).catch(console.error);
 
+      // Redirect immediately
       navigate(`/app/ideas/${idea.id}`);
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to create idea');
@@ -82,7 +83,7 @@ export const NewIdea = () => {
                 isLoading={isLoading}
                 disabled={isLoading}
               >
-                {isLoading ? 'Creating & Analyzing...' : 'Create & Analyze'}
+                {isLoading ? 'Creating...' : 'Create Idea'}
               </Button>
               <Button
                 type="button"

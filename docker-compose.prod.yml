@@ -44,7 +44,7 @@ services:
     restart: unless-stopped
     networks:
       - ideator-network
-    command: sh -c "npx prisma migrate deploy && npm start"
+    command: sh -c "pnpm exec prisma migrate deploy && pnpm start"
 
   # Frontend
   frontend:

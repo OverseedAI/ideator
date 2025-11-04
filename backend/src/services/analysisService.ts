@@ -2,22 +2,8 @@ import { prisma } from '../db';
 import { AppError } from '../middleware/errorHandler';
 import { aiClient } from '../ai/client';
 import { analysisPrompts } from '../ai/prompts';
+import { analysisSchemas } from '../ai/schemas';
 import { AnalysisSectionType, UserProfileData } from '../types';
-
-const parseAIResponse = (response: string): any => {
-  try {
-    // Try to extract JSON from markdown code blocks if present
-    const jsonMatch = response.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/);
-    if (jsonMatch) {
-      return JSON.parse(jsonMatch[1]);
-    }
-    // Try to parse directly
-    return JSON.parse(response);
-  } catch (error) {
-    console.error('Failed to parse AI response:', response);
-    throw new AppError(500, 'Failed to parse AI analysis');
-  }
-};
 
 const generateAnalysis = async (
   sectionType: AnalysisSectionType,
@@ -27,12 +13,13 @@ const generateAnalysis = async (
 ): Promise<any> => {
   const promptFn = analysisPrompts[sectionType];
   const prompt = promptFn(ideaTitle, ideaDescription, userProfile);
+  const schema = analysisSchemas[sectionType];
 
   const systemPrompt =
-    'You are a business analyst helping entrepreneurs evaluate their ideas. Always return valid JSON responses.';
+    'You are a business analyst helping entrepreneurs evaluate their ideas. Provide thorough, actionable insights.';
 
-  const response = await aiClient.generateText(prompt, systemPrompt);
-  return parseAIResponse(response);
+  const result = await aiClient.generateStructuredOutput(prompt, schema, systemPrompt);
+  return result;
 };
 
 export const analyzeIdea = async (ideaId: string, userId: string) => {

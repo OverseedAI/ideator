@@ -44,7 +44,7 @@ services:
     volumes:
       - ./backend/src:/app/src
       - ./backend/prisma:/app/prisma
-    command: npm run dev
+    command: pnpm run dev
 
   # Frontend
   frontend:
@@ -62,7 +62,7 @@ services:
     volumes:
       - ./frontend/src:/app/src
       - ./frontend/public:/app/public
-    command: npm run dev
+    command: pnpm run dev
 
 volumes:
   postgres_data:

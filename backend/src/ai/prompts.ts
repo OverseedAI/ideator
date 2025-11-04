@@ -36,16 +36,6 @@ Please provide:
 1. Key industry keywords and terminology (5-10 terms)
 2. Important product terms and concepts specific to this space
 3. A brief industry overview
-
-Return your response in JSON format:
-{
-  "keywords": ["keyword1", "keyword2", ...],
-  "terminology": {
-    "term1": "definition1",
-    "term2": "definition2"
-  },
-  "industryOverview": "overview text"
-}
 `.trim();
 };
 
@@ -68,15 +58,6 @@ Provide a comprehensive SWOT analysis:
 - Opportunities: External favorable conditions
 - Threats: External challenges or risks
 - Personalized Insights: How the user's profile affects this analysis
-
-Return your response in JSON format:
-{
-  "strengths": ["strength1", "strength2", ...],
-  "weaknesses": ["weakness1", "weakness2", ...],
-  "opportunities": ["opportunity1", "opportunity2", ...],
-  "threats": ["threat1", "threat2", ...],
-  "personalizedInsights": "insights text"
-}
 `.trim();
 };
 
@@ -92,22 +73,7 @@ Description: ${ideaDescription}
 
 1. Core features this product should have (5-10 features)
 2. Key competitors and their feature sets (3-5 competitors)
-3. A competitive comparison matrix
-
-Return your response in JSON format:
-{
-  "features": ["feature1", "feature2", ...],
-  "competitiveAnalysis": [
-    {
-      "competitor": "Competitor Name",
-      "features": {
-        "feature1": true,
-        "feature2": false,
-        ...
-      }
-    }
-  ]
-}
+3. A competitive comparison matrix showing which features each competitor has
 `.trim();
 };
 
@@ -129,23 +95,6 @@ Provide:
 2. Target market - segments, size, description
 3. Pricing strategies - models and rationale
 4. Estimated timeline to market
-
-Return your response in JSON format:
-{
-  "moats": ["moat1", "moat2", ...],
-  "targetMarket": {
-    "segments": ["segment1", "segment2", ...],
-    "size": "market size estimate",
-    "description": "description text"
-  },
-  "pricingStrategies": [
-    {
-      "model": "pricing model name",
-      "rationale": "why this works"
-    }
-  ],
-  "timelineToMarket": "estimated timeline"
-}
 `.trim();
 };
 
@@ -167,18 +116,6 @@ Provide 3-5 strategies with:
 - Description
 - Effort level (low/medium/high)
 - Timeline estimate
-
-Return your response in JSON format:
-{
-  "strategies": [
-    {
-      "title": "strategy title",
-      "description": "detailed description",
-      "effort": "low",
-      "timeline": "2-4 weeks"
-    }
-  ]
-}
 `.trim();
 };
 
@@ -200,18 +137,6 @@ Provide 5-7 prioritized, actionable steps with:
 - Description
 - Priority (1 being highest)
 - Estimated time
-
-Return your response in JSON format:
-{
-  "steps": [
-    {
-      "title": "step title",
-      "description": "what to do",
-      "priority": 1,
-      "estimatedTime": "time estimate"
-    }
-  ]
-}
 `.trim();
 };
 
@@ -240,19 +165,6 @@ Provide:
 - Overall viability score (0-100)
 - Individual factor scores with reasoning
 - Overall assessment summary
-
-Return your response in JSON format:
-{
-  "score": 75,
-  "factors": [
-    {
-      "category": "Market Opportunity",
-      "score": 80,
-      "reasoning": "explanation"
-    }
-  ],
-  "overallAssessment": "summary text"
-}
 `.trim();
 };
 

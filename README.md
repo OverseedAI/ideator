@@ -28,7 +28,7 @@ A startup incubation SaaS platform that helps entrepreneurs evaluate and develop
 ### Prerequisites
 
 - Node.js >= 20.0.0
-- npm >= 10.0.0
+- pnpm >= 8.0.0
 - Docker and docker-compose (for containerized deployment)
 - PostgreSQL (if running locally without Docker)
 
@@ -42,7 +42,7 @@ cd ideator
 
 2. Install dependencies:
 ```bash
-npm install
+pnpm install
 ```
 
 3. Set up environment variables:
@@ -59,13 +59,13 @@ cp frontend/.env.example frontend/.env
 4. Run database migrations:
 ```bash
 cd backend
-npm run db:migrate
+pnpm run db:migrate
 cd ..
 ```
 
 5. Start development servers:
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 Frontend: http://localhost:5173
@@ -74,19 +74,19 @@ Backend: http://localhost:3000
 ### Docker Development
 
 ```bash
-npm run docker:dev
+pnpm run docker:dev
 ```
 
 ### Production Deployment
 
 1. Build production images:
 ```bash
-npm run docker:build
+pnpm run docker:build
 ```
 
 2. Start production containers:
 ```bash
-npm run docker:prod
+pnpm run docker:prod
 ```
 
 ## Project Structure

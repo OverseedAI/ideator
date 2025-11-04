@@ -1,5 +1,6 @@
 import { openai } from '@ai-sdk/openai';
-import { generateText } from 'ai';
+import { generateText, generateObject } from 'ai';
+import { z } from 'zod';
 import { config } from '../config';
 
 export const createAIClient = () => {
@@ -20,6 +21,26 @@ export const createAIClient = () => {
       });
 
       return result.text;
+    },
+
+    generateStructuredOutput: async <T>(
+      prompt: string,
+      schema: z.ZodSchema<T>,
+      systemPrompt?: string
+    ): Promise<T> => {
+      const result = await generateObject({
+        model,
+        schema,
+        messages: [
+          ...(systemPrompt
+            ? [{ role: 'system' as const, content: systemPrompt }]
+            : []),
+          { role: 'user' as const, content: prompt },
+        ],
+        temperature: 0.7,
+      });
+
+      return result.object;
     },
   };
 };

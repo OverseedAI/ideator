@@ -5,7 +5,7 @@ This guide will help you set up and run the Ideator application locally or in pr
 ## Prerequisites
 
 - Node.js >= 20.0.0
-- npm >= 10.0.0
+- pnpm >= 8.0.0
 - Docker and docker-compose (optional, for containerized deployment)
 - PostgreSQL (if running without Docker)
 - OpenAI API key
@@ -45,7 +45,7 @@ This guide will help you set up and run the Ideator application locally or in pr
 
 2. **Install dependencies**
    ```bash
-   npm install
+   pnpm install
    ```
 
 3. **Set up environment variables**
@@ -57,13 +57,13 @@ This guide will help you set up and run the Ideator application locally or in pr
 4. **Set up database**
    ```bash
    # Make sure PostgreSQL is running
-   npm run db:generate
-   npm run db:migrate
+   pnpm run db:generate
+   pnpm run db:migrate
    ```
 
 5. **Start development server**
    ```bash
-   npm run dev
+   pnpm run dev
    ```
 
 ### Frontend Setup
@@ -75,7 +75,7 @@ This guide will help you set up and run the Ideator application locally or in pr
 
 2. **Install dependencies**
    ```bash
-   npm install
+   pnpm install
    ```
 
 3. **Set up environment variables**
@@ -86,7 +86,7 @@ This guide will help you set up and run the Ideator application locally or in pr
 
 4. **Start development server**
    ```bash
-   npm run dev
+   pnpm run dev
    ```
 
 ## Production Deployment
@@ -129,13 +129,13 @@ This guide will help you set up and run the Ideator application locally or in pr
 ### Create a migration
 ```bash
 cd backend
-npm run db:migrate
+pnpm run db:migrate
 ```
 
 ### View database in Prisma Studio
 ```bash
 cd backend
-npm run db:studio
+pnpm run db:studio
 ```
 
 ### Reset database (development only)
@@ -189,7 +189,7 @@ If ports 3000 or 5173 are already in use, you can change them in:
 
 ## Development Tips
 
-- Use `npm run dev` in root to start both frontend and backend
+- Use `pnpm run dev` in root to start both frontend and backend
 - Backend uses hot reload with tsx watch
 - Frontend uses Vite HMR for instant updates
 - Check backend logs for API errors

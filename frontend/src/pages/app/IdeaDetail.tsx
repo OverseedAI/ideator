@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Idea, Analysis, AnalysisSectionType } from '@/types';
 import * as ideaService from '@/services/ideaService';
 import { Button } from '@/components/common/Button';
 import { Badge } from '@/components/common/Badge';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+import { SkeletonCard } from '@/components/common/Skeleton';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/common/Card';
 import { EducationSectionComponent } from '@/components/idea/EducationSection';
 import { SwotSection } from '@/components/idea/SwotSection';
@@ -19,12 +20,14 @@ export const IdeaDetail = () => {
   const [analyses, setAnalyses] = useState<Analysis[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const loadIdea = async () => {
     if (!id) return;
 
     try {
-      setIsLoading(true);
+      if (isLoading) setIsLoading(true);
       const [ideaData, analysesData] = await Promise.all([
         ideaService.getIdeaById(id),
         ideaService.getIdeaAnalyses(id),
@@ -40,16 +43,69 @@ export const IdeaDetail = () => {
 
   useEffect(() => {
     loadIdea();
+
+    // Set up polling for analyzing status
+    return () => {
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+      }
+    };
   }, [id]);
+
+  // Poll for updates when analyzing
+  useEffect(() => {
+    if (idea?.status === 'analyzing') {
+      pollIntervalRef.current = setInterval(() => {
+        loadIdea();
+      }, 3000); // Poll every 3 seconds
+    } else {
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+        pollIntervalRef.current = null;
+      }
+    }
+
+    return () => {
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+      }
+    };
+  }, [idea?.status]);
 
   const getAnalysis = (type: AnalysisSectionType) => {
     return analyses.find((a) => a.sectionType === type);
   };
 
+  const handleDelete = async () => {
+    if (!id) return;
+    if (!confirm('Are you sure you want to delete this idea? This action cannot be undone.')) {
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      await ideaService.deleteIdea(id);
+      navigate('/app');
+    } catch (err: any) {
+      alert(err.response?.data?.error || 'Failed to delete idea');
+      setIsDeleting(false);
+    }
+  };
+
   if (isLoading) {
     return (
-      <div className="flex h-96 items-center justify-center">
-        <LoadingSpinner size="lg" />
+      <div>
+        <div className="mb-8">
+          <Button variant="ghost" onClick={() => navigate('/app')}>
+            ← Back to Dashboard
+          </Button>
+        </div>
+        <SkeletonCard />
+        <div className="mt-8 space-y-8">
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
       </div>
     );
   }
@@ -71,9 +127,17 @@ export const IdeaDetail = () => {
 
   return (
     <div>
-      <div className="mb-8">
+      <div className="mb-8 flex items-center justify-between">
         <Button variant="ghost" onClick={() => navigate('/app')}>
           ← Back to Dashboard
+        </Button>
+        <Button
+          variant="danger"
+          onClick={handleDelete}
+          isLoading={isDeleting}
+          disabled={isDeleting}
+        >
+          Delete Idea
         </Button>
       </div>
 
@@ -95,12 +159,23 @@ export const IdeaDetail = () => {
       </Card>
 
       {idea.status === 'analyzing' && (
-        <div className="mb-8 rounded-lg bg-blue-50 p-4 text-blue-800">
-          <div className="flex items-center gap-3">
-            <LoadingSpinner size="sm" />
-            <span>AI is analyzing your idea. This may take a few moments...</span>
+        <>
+          <div className="mb-8 rounded-lg bg-blue-50 p-4 text-blue-800">
+            <div className="flex items-center gap-3">
+              <LoadingSpinner size="sm" />
+              <span>AI is analyzing your idea. This may take a few moments...</span>
+            </div>
           </div>
-        </div>
+          <div className="space-y-8">
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+          </div>
+        </>
       )}
 
       {idea.status === 'failed' && (
