@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Idea } from "@/types";
 import {
@@ -10,12 +9,10 @@ import {
 } from "@/components/common/Card";
 import { Badge } from "@/components/common/Badge";
 import { Button } from "@/components/common/Button";
-import * as ideaService from "@/services/ideaService";
 
 interface IdeaCardProps {
   idea: Idea;
   onDelete?: (id: string) => void;
-  onRetry?: (id: string) => Promise<void>;
 }
 
 const statusVariants: Record<string, "default" | "warning" | "success" | "error"> = {
@@ -25,9 +22,8 @@ const statusVariants: Record<string, "default" | "warning" | "success" | "error"
   failed: "error",
 };
 
-export const IdeaCard = ({ idea, onDelete, onRetry }: IdeaCardProps) => {
+export const IdeaCard = ({ idea, onDelete }: IdeaCardProps) => {
   const navigate = useNavigate();
-  const [isRetrying, setIsRetrying] = useState(false);
 
   const handleView = () => {
     navigate(`/app/ideas/${idea.id}`);
@@ -37,28 +33,6 @@ export const IdeaCard = ({ idea, onDelete, onRetry }: IdeaCardProps) => {
     e.stopPropagation();
     if (confirm("Are you sure you want to delete this idea?")) {
       onDelete?.(idea.id);
-    }
-  };
-
-  const handleRetry = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (onRetry) {
-      setIsRetrying(true);
-      try {
-        await onRetry(idea.id);
-      } finally {
-        setIsRetrying(false);
-      }
-    } else {
-      // Fallback: direct service call if no callback provided
-      setIsRetrying(true);
-      try {
-        await ideaService.analyzeIdea(idea.id);
-      } catch (err: any) {
-        alert(err.response?.data?.error || "Failed to retry analysis");
-      } finally {
-        setIsRetrying(false);
-      }
     }
   };
 
@@ -75,21 +49,10 @@ export const IdeaCard = ({ idea, onDelete, onRetry }: IdeaCardProps) => {
       </CardHeader>
       <CardContent>
         <p className="line-clamp-2 text-sm text-text-secondary">{idea.description}</p>
-        <div className="mt-4 flex gap-2 flex-wrap">
+        <div className="mt-4 flex gap-2">
           <Button size="sm" onClick={handleView}>
             View Details
           </Button>
-          {idea.status === "failed" && (
-            <Button
-              size="sm"
-              variant="primary"
-              onClick={handleRetry}
-              isLoading={isRetrying}
-              disabled={isRetrying}
-            >
-              Retry Analysis
-            </Button>
-          )}
           <Button size="sm" variant="danger" onClick={handleDelete}>
             Delete
           </Button>
