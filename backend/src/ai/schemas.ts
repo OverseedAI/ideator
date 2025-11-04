@@ -26,6 +26,7 @@ export const featuresSchema = z.object({
   competitiveAnalysis: z.array(
     z.object({
       competitor: z.string(),
+      url: z.string().optional().describe('URL to the competitor website'),
       features: z.record(z.string(), z.boolean()).describe('Which features the competitor has'),
     })
   ).describe('3-5 key competitors and their feature sets'),

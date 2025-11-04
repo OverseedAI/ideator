@@ -63,6 +63,7 @@ export interface FeaturesContent {
   features: string[];
   competitiveAnalysis: {
     competitor: string;
+    url?: string;
     features: Record<string, boolean>;
   }[];
 }

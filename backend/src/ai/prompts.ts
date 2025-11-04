@@ -63,16 +63,28 @@ Provide a comprehensive SWOT analysis:
 
 export const createFeaturesPrompt = (
   ideaTitle: string,
-  ideaDescription: string
+  ideaDescription: string,
+  competitorSearchResults?: Array<{ name: string; url: string; description: string }>
 ): string => {
+  const competitorContext = competitorSearchResults && competitorSearchResults.length > 0
+    ? `\n\nReal competitors found through web search:\n${competitorSearchResults
+        .map((c, i) => `${i + 1}. ${c.name} (${c.url})\n   ${c.description}`)
+        .join('\n\n')}`
+    : '';
+
   return `
 Analyze this business idea and identify:
 
 Idea: ${ideaTitle}
-Description: ${ideaDescription}
+Description: ${ideaDescription}${competitorContext}
 
 1. Core features this product should have (5-10 features)
 2. Key competitors and their feature sets (3-5 competitors)
+   ${competitorSearchResults && competitorSearchResults.length > 0
+     ? '- Use the real competitors provided above from web search results'
+     : '- Research and identify real competitors in this space'}
+   - For each competitor, include their URL in the 'url' field
+   - Analyze what features they currently offer
 3. A competitive comparison matrix showing which features each competitor has
 `.trim();
 };

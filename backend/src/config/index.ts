@@ -20,6 +20,10 @@ const configSchema = z.object({
     model: z.string().default('gpt-4o'),
   }),
 
+  search: z.object({
+    tavilyApiKey: z.string().optional(),
+  }),
+
   cors: z.object({
     allowedOrigins: z.array(z.string()).default(['http://localhost:5173']),
   }),
@@ -38,6 +42,9 @@ const parseConfig = () => {
     ai: {
       apiKey: process.env.OPENAI_API_KEY,
       model: process.env.AI_MODEL,
+    },
+    search: {
+      tavilyApiKey: process.env.TAVILY_API_KEY,
     },
     cors: {
       allowedOrigins: process.env.ALLOWED_ORIGINS?.split(',') || undefined,
