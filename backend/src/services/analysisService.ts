@@ -1,10 +1,10 @@
 import { prisma } from '../db';
 import { AppError } from '../middleware/errorHandler';
 import { aiClient } from '../ai/client';
-import { analysisPrompts, createFeaturesPrompt } from '../ai/prompts';
+import { analysisPrompts } from '../ai/prompts';
 import { analysisSchemas } from '../ai/schemas';
 import { AnalysisSectionType, UserProfileData } from '../types';
-import { searchCompetitors } from './searchService.js';
+import { aiTools } from '../ai/tools.js';
 
 const generateAnalysis = async (
   sectionType: AnalysisSectionType,
@@ -16,22 +16,24 @@ const generateAnalysis = async (
   const systemPrompt =
     'You are a business analyst helping entrepreneurs evaluate their ideas. Provide thorough, actionable insights.';
 
-  let prompt: string;
+  // Generate prompt
+  const promptFn = analysisPrompts[sectionType];
+  const prompt = promptFn(ideaTitle, ideaDescription, userProfile);
 
-  // Special handling for features section to include web search results
+  // Special handling for features section - enable web search tool
   if (sectionType === 'features') {
-    // Search for competitors using web search
-    const competitorResults = await searchCompetitors(ideaTitle, ideaDescription);
-    console.log(`Found ${competitorResults.length} competitors through web search`);
-
-    // Create features prompt with competitor search results
-    prompt = createFeaturesPrompt(ideaTitle, ideaDescription, competitorResults);
-  } else {
-    // Use standard prompt generation for other sections
-    const promptFn = analysisPrompts[sectionType];
-    prompt = promptFn(ideaTitle, ideaDescription, userProfile);
+    console.log('Generating features analysis with web search tool enabled...');
+    const result = await aiClient.generateStructuredOutputWithTools(
+      prompt,
+      schema,
+      aiTools,
+      systemPrompt,
+      10 // Allow up to 10 steps for tool calling
+    );
+    return result;
   }
 
+  // Standard generation for other sections
   const result = await aiClient.generateStructuredOutput(prompt, schema, systemPrompt);
   return result;
 };
