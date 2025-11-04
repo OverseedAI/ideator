@@ -1,5 +1,6 @@
 import { FeaturesContent } from '@/types';
 import { AnalysisSection } from './AnalysisSection';
+import { Zap } from 'lucide-react';
 
 interface FeaturesSectionProps {
   content: FeaturesContent;
@@ -12,23 +13,24 @@ export const FeaturesSection = ({ content }: FeaturesSectionProps) => {
     <AnalysisSection
       title="Feature Analysis"
       description="Core features and competitive comparison"
+      icon={<Zap size={28} />}
     >
       <div className="space-y-6">
         <div>
-          <h4 className="mb-3 font-semibold">Recommended Features</h4>
-          <ul className="grid gap-2 md:grid-cols-2">
+          <h4 className="mb-3">Recommended Features</h4>
+          <ul className="modern-list md:grid md:grid-cols-2">
             {content.features.map((feature, idx) => (
-              <li key={idx} className="text-sm text-text-secondary">
-                • {feature}
+              <li key={idx}>
+                {feature}
               </li>
             ))}
           </ul>
         </div>
 
         <div>
-          <h4 className="mb-3 font-semibold">Competitive Comparison</h4>
+          <h4 className="mb-3">Competitive Comparison</h4>
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse text-sm">
+            <table className="w-full border-collapse text-base">
               <thead>
                 <tr className="border-b border-border">
                   <th className="px-4 py-3 text-left font-semibold">

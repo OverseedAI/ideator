@@ -31,13 +31,19 @@ export const CardHeader = ({
   );
 };
 
+interface CardTitleProps extends HTMLAttributes<HTMLHeadingElement> {
+  icon?: ReactNode;
+}
+
 export const CardTitle = ({
   children,
+  icon,
   className,
   ...props
-}: HTMLAttributes<HTMLHeadingElement>) => {
+}: CardTitleProps) => {
   return (
-    <h3 className={cn('text-xl font-semibold', className)} {...props}>
+    <h3 className={cn('text-2xl font-semibold flex items-center gap-3', className)} {...props}>
+      {icon && <span className="text-primary">{icon}</span>}
       {children}
     </h3>
   );
@@ -49,7 +55,7 @@ export const CardDescription = ({
   ...props
 }: HTMLAttributes<HTMLParagraphElement>) => {
   return (
-    <p className={cn('text-sm text-text-secondary mt-1', className)} {...props}>
+    <p className={cn('text-base text-text-secondary mt-2', className)} {...props}>
       {children}
     </p>
   );

@@ -1,5 +1,6 @@
 import { ViabilityContent } from '@/types';
 import { AnalysisSection } from './AnalysisSection';
+import { BarChart3 } from 'lucide-react';
 
 interface ViabilitySectionProps {
   content: ViabilityContent;
@@ -16,6 +17,7 @@ export const ViabilitySection = ({ content }: ViabilitySectionProps) => {
     <AnalysisSection
       title="Viability Score"
       description="Overall assessment based on your profile"
+      icon={<BarChart3 size={28} />}
     >
       <div className="space-y-6">
         <div className="flex items-center justify-center">
@@ -25,14 +27,14 @@ export const ViabilitySection = ({ content }: ViabilitySectionProps) => {
             >
               {content.score}
             </div>
-            <div className="mt-2 text-sm text-text-secondary">
+            <div className="mt-2 text-text-secondary">
               out of 100
             </div>
           </div>
         </div>
 
         <div>
-          <h4 className="mb-4 font-semibold">Factor Breakdown</h4>
+          <h4 className="mb-4">Factor Breakdown</h4>
           <div className="space-y-4">
             {content.factors.map((factor, idx) => (
               <div key={idx}>
@@ -50,14 +52,14 @@ export const ViabilitySection = ({ content }: ViabilitySectionProps) => {
                     style={{ width: `${factor.score}%` }}
                   />
                 </div>
-                <p className="text-sm text-text-secondary">{factor.reasoning}</p>
+                <p className="text-text-secondary">{factor.reasoning}</p>
               </div>
             ))}
           </div>
         </div>
 
         <div>
-          <h4 className="mb-3 font-semibold">Overall Assessment</h4>
+          <h4 className="mb-3">Overall Assessment</h4>
           <p className="text-text-secondary">{content.overallAssessment}</p>
         </div>
       </div>
