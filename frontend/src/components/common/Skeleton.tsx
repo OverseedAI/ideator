@@ -1,29 +1,21 @@
-import { HTMLAttributes } from 'react';
-import { cn } from '@/utils/cn';
+import { HTMLAttributes } from "react";
+import { cn } from "@/utils/cn";
 
 interface SkeletonProps extends HTMLAttributes<HTMLDivElement> {
-  variant?: 'text' | 'title' | 'card' | 'circle';
+  variant?: "text" | "title" | "card" | "circle";
 }
 
-export const Skeleton = ({
-  variant = 'text',
-  className,
-  ...props
-}: SkeletonProps) => {
+export const Skeleton = ({ variant = "text", className, ...props }: SkeletonProps) => {
   const variants = {
-    text: 'h-4 w-full',
-    title: 'h-8 w-3/4',
-    card: 'h-48 w-full',
-    circle: 'h-12 w-12 rounded-full',
+    text: "h-4 w-full",
+    title: "h-8 w-3/4",
+    card: "h-48 w-full",
+    circle: "h-12 w-12 rounded-full",
   };
 
   return (
     <div
-      className={cn(
-        'animate-pulse rounded bg-gray-200',
-        variants[variant],
-        className
-      )}
+      className={cn("animate-pulse rounded bg-gray-200", variants[variant], className)}
       {...props}
     />
   );

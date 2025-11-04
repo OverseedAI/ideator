@@ -1,21 +1,27 @@
-import { useState, FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
-import * as ideaService from '@/services/ideaService';
-import { Input } from '@/components/common/Input';
-import { Textarea } from '@/components/common/Textarea';
-import { Button } from '@/components/common/Button';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/common/Card';
+import { useState, FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
+import * as ideaService from "@/services/ideaService";
+import { Input } from "@/components/common/Input";
+import { Textarea } from "@/components/common/Textarea";
+import { Button } from "@/components/common/Button";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/common/Card";
 
 export const NewIdea = () => {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [error, setError] = useState('');
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setIsLoading(true);
 
     try {
@@ -27,7 +33,7 @@ export const NewIdea = () => {
       // Redirect immediately
       navigate(`/app/ideas/${idea.id}`);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to create idea');
+      setError(err.response?.data?.error || "Failed to create idea");
       setIsLoading(false);
     }
   };
@@ -50,11 +56,7 @@ export const NewIdea = () => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            {error && (
-              <div className="rounded-lg bg-red-50 p-3 text-sm text-red-800">
-                {error}
-              </div>
-            )}
+            {error && <div className="rounded-lg bg-red-50 p-3 text-sm text-red-800">{error}</div>}
 
             <Input
               label="Idea Title"
@@ -78,17 +80,13 @@ export const NewIdea = () => {
             />
 
             <div className="flex gap-4">
-              <Button
-                type="submit"
-                isLoading={isLoading}
-                disabled={isLoading}
-              >
-                {isLoading ? 'Creating...' : 'Create Idea'}
+              <Button type="submit" isLoading={isLoading} disabled={isLoading}>
+                {isLoading ? "Creating..." : "Create Idea"}
               </Button>
               <Button
                 type="button"
                 variant="ghost"
-                onClick={() => navigate('/app')}
+                onClick={() => navigate("/app")}
                 disabled={isLoading}
               >
                 Cancel

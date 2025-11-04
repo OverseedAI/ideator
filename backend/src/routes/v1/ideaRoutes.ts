@@ -1,28 +1,23 @@
-import { Router } from 'express';
-import * as ideaController from '../../controllers/ideaController';
-import { validate } from '../../middleware/validation';
-import { authenticate } from '../../middleware/auth';
+import { Router } from "express";
+import * as ideaController from "../../controllers/ideaController";
+import { validate } from "../../middleware/validation";
+import { authenticate } from "../../middleware/auth";
 
 const router = Router();
 
 router.post(
-  '/',
+  "/",
   authenticate,
   validate(ideaController.createIdeaSchema),
   ideaController.createIdea
 );
 
-router.get('/', authenticate, ideaController.getUserIdeas);
+router.get("/", authenticate, ideaController.getUserIdeas);
 
-router.get(
-  '/:id',
-  authenticate,
-  validate(ideaController.ideaIdSchema),
-  ideaController.getIdeaById
-);
+router.get("/:id", authenticate, validate(ideaController.ideaIdSchema), ideaController.getIdeaById);
 
 router.put(
-  '/:id',
+  "/:id",
   authenticate,
   validate(ideaController.ideaIdSchema),
   validate(ideaController.updateIdeaSchema),
@@ -30,7 +25,7 @@ router.put(
 );
 
 router.delete(
-  '/:id',
+  "/:id",
   authenticate,
   validate(ideaController.ideaIdSchema),
   ideaController.deleteIdea

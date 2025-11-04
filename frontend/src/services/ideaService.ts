@@ -1,16 +1,13 @@
-import api from './api';
-import { Idea, Analysis } from '@/types';
+import api from "./api";
+import { Idea, Analysis } from "@/types";
 
-export const createIdea = async (data: {
-  title: string;
-  description: string;
-}): Promise<Idea> => {
-  const response = await api.post<Idea>('/ideas', data);
+export const createIdea = async (data: { title: string; description: string }): Promise<Idea> => {
+  const response = await api.post<Idea>("/ideas", data);
   return response.data;
 };
 
 export const getUserIdeas = async (): Promise<Idea[]> => {
-  const response = await api.get<Idea[]>('/ideas');
+  const response = await api.get<Idea[]>("/ideas");
   return response.data;
 };
 
@@ -31,12 +28,8 @@ export const deleteIdea = async (id: string): Promise<void> => {
   await api.delete(`/ideas/${id}`);
 };
 
-export const analyzeIdea = async (
-  id: string
-): Promise<{ message: string }> => {
-  const response = await api.post<{ message: string }>(
-    `/ideas/${id}/analyze`
-  );
+export const analyzeIdea = async (id: string): Promise<{ message: string }> => {
+  const response = await api.post<{ message: string }>(`/ideas/${id}/analyze`);
   return response.data;
 };
 

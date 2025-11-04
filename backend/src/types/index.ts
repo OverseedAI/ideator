@@ -1,4 +1,4 @@
-import { Request } from 'express';
+import { Request } from "express";
 
 // Auth types
 export interface JwtPayload {
@@ -23,13 +23,13 @@ export interface UserProfileData {
 
 // Analysis section types
 export type AnalysisSectionType =
-  | 'education'
-  | 'swot'
-  | 'features'
-  | 'business_values'
-  | 'pmf'
-  | 'next_steps'
-  | 'viability';
+  | "education"
+  | "swot"
+  | "features"
+  | "business_values"
+  | "pmf"
+  | "next_steps"
+  | "viability";
 
 // Analysis content structures
 export interface EducationContent {
@@ -72,7 +72,7 @@ export interface PmfContent {
   strategies: {
     title: string;
     description: string;
-    effort: 'low' | 'medium' | 'high';
+    effort: "low" | "medium" | "high";
     timeline: string;
   }[];
 }

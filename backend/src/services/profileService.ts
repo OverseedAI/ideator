@@ -1,6 +1,6 @@
-import { prisma } from '../db';
-import { AppError } from '../middleware/errorHandler';
-import { UserProfileData } from '../types';
+import { prisma } from "../db";
+import { AppError } from "../middleware/errorHandler";
+import { UserProfileData } from "../types";
 
 export const getProfile = async (userId: string) => {
   const user = await prisma.user.findUnique({
@@ -16,7 +16,7 @@ export const getProfile = async (userId: string) => {
   });
 
   if (!user) {
-    throw new AppError(404, 'User not found');
+    throw new AppError(404, "User not found");
   }
 
   return user;
@@ -31,7 +31,7 @@ export const updateProfile = async (
   });
 
   if (!user) {
-    throw new AppError(404, 'User not found');
+    throw new AppError(404, "User not found");
   }
 
   const updatedUser = await prisma.user.update({

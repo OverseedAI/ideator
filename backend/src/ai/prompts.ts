@@ -7,7 +7,7 @@ import {
   PmfContent,
   NextStepsContent,
   ViabilityContent,
-} from '../types';
+} from "../types";
 
 const formatUserContext = (profile?: UserProfileData): string => {
   if (!profile) {
@@ -25,20 +25,17 @@ User Context:
 
   return `
 User Context:
-- Expertise: ${profile.expertise?.join(', ') || 'Not specified'}
-- Funding: ${profile.funding || 'Not specified'}
-- Followers: ${profile.followers || 'Not specified'}
-- LinkedIn: ${profile.linkedInUrl || 'Not specified'}
-- Company: ${profile.company || 'Not specified'}
-- Experience: ${profile.experience || 'Not specified'}
-- Industries: ${profile.industries?.join(', ') || 'Not specified'}
+- Expertise: ${profile.expertise?.join(", ") || "Not specified"}
+- Funding: ${profile.funding || "Not specified"}
+- Followers: ${profile.followers || "Not specified"}
+- LinkedIn: ${profile.linkedInUrl || "Not specified"}
+- Company: ${profile.company || "Not specified"}
+- Experience: ${profile.experience || "Not specified"}
+- Industries: ${profile.industries?.join(", ") || "Not specified"}
 `.trim();
 };
 
-export const createEducationPrompt = (
-  ideaTitle: string,
-  ideaDescription: string
-): string => {
+export const createEducationPrompt = (ideaTitle: string, ideaDescription: string): string => {
   return `
 Analyze this business idea and provide educational context about the product space:
 
@@ -74,10 +71,7 @@ Provide a comprehensive SWOT analysis:
 `.trim();
 };
 
-export const createFeaturesPrompt = (
-  ideaTitle: string,
-  ideaDescription: string
-): string => {
+export const createFeaturesPrompt = (ideaTitle: string, ideaDescription: string): string => {
   return `
 Analyze this business idea and identify:
 
@@ -111,10 +105,7 @@ Provide:
 `.trim();
 };
 
-export const createPmfPrompt = (
-  ideaTitle: string,
-  ideaDescription: string
-): string => {
+export const createPmfPrompt = (ideaTitle: string, ideaDescription: string): string => {
   return `
 Brainstorm creative ways to quickly gauge product-market fit for this idea:
 
