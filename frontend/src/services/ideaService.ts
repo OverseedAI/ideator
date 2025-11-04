@@ -46,97 +46,86 @@ export const analyzeIdeaStream = (
   onComplete: () => void,
   onError: (error: string) => void
 ): (() => void) => {
-  const token = localStorage.getItem('token');
-  const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
+  let cancelled = false;
+  let processedLength = 0;
+  let buffer = '';
 
-  const eventSource = new EventSource(
-    `${baseURL}/ideas/${id}/analyze`,
-    {
-      withCredentials: false,
-    }
-  );
+  const parseSSEChunk = (chunk: string) => {
+    buffer += chunk;
+    const lines = buffer.split('\n');
 
-  // Manually set Authorization header via fetch and use that instead
-  // EventSource doesn't support custom headers, so we'll use fetch with SSE
-  eventSource.close();
+    // Keep the last incomplete line in the buffer
+    buffer = lines.pop() || '';
 
-  let controller: AbortController | null = new AbortController();
+    let currentEvent = '';
+    let currentData = '';
 
-  fetch(`${baseURL}/ideas/${id}/analyze`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Accept': 'text/event-stream',
-    },
-    signal: controller.signal,
-  })
-    .then(async (response) => {
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+    for (const line of lines) {
+      if (line.startsWith('event:')) {
+        currentEvent = line.slice(6).trim();
+      } else if (line.startsWith('data:')) {
+        currentData = line.slice(5).trim();
+      } else if (line === '' && currentEvent && currentData) {
+        // Complete event received
+        try {
+          const data = JSON.parse(currentData);
 
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
-
-      if (!reader) {
-        throw new Error('No response body');
-      }
-
-      let buffer = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-
-        // Keep the last incomplete line in the buffer
-        buffer = lines.pop() || '';
-
-        let currentEvent = '';
-        let currentData = '';
-
-        for (const line of lines) {
-          if (line.startsWith('event:')) {
-            currentEvent = line.slice(6).trim();
-          } else if (line.startsWith('data:')) {
-            currentData = line.slice(5).trim();
-          } else if (line === '' && currentEvent && currentData) {
-            // Complete event received
-            try {
-              const data = JSON.parse(currentData);
-
-              if (currentEvent === 'section') {
-                onSection(data);
-              } else if (currentEvent === 'complete') {
-                onComplete();
-              } else if (currentEvent === 'error') {
-                onError(data.message || 'Analysis failed');
-              }
-            } catch (err) {
-              console.error('Failed to parse SSE data:', err);
-            }
-
-            currentEvent = '';
-            currentData = '';
+          if (currentEvent === 'section') {
+            onSection(data);
+          } else if (currentEvent === 'complete') {
+            onComplete();
+          } else if (currentEvent === 'error') {
+            onError(data.message || 'Analysis failed');
           }
+        } catch (err) {
+          console.error('Failed to parse SSE data:', err);
+        }
+
+        currentEvent = '';
+        currentData = '';
+      }
+    }
+  };
+
+  api
+    .post(`/ideas/${id}/analyze`, null, {
+      responseType: 'text',
+      headers: {
+        Accept: 'text/event-stream',
+      },
+      onDownloadProgress: (progressEvent) => {
+        if (cancelled) return;
+
+        const xhr = progressEvent.event.target as XMLHttpRequest;
+        const responseText = xhr.responseText;
+
+        // Get only the new part since last processing
+        const newChunk = responseText.slice(processedLength);
+        processedLength = responseText.length;
+
+        if (newChunk) {
+          parseSSEChunk(newChunk);
+        }
+      },
+      adapter: 'xhr', // Force XHR adapter for onDownloadProgress support
+    })
+    .then(() => {
+      if (!cancelled) {
+        // Final parse in case there's remaining data
+        if (buffer) {
+          parseSSEChunk('\n\n'); // Force final parse
         }
       }
     })
     .catch((error) => {
-      if (error.name !== 'AbortError') {
-        onError(error.message || 'Connection failed');
+      if (!cancelled && !api.isCancel?.(error)) {
+        onError(error.response?.data?.error || error.message || 'Connection failed');
       }
     });
 
   // Return cleanup function
   return () => {
-    if (controller) {
-      controller.abort();
-      controller = null;
-    }
+    cancelled = true;
   };
 };
 
