@@ -35,6 +35,7 @@ model Idea {
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   analyses    Analysis[]
 
+  @@unique([userId, title])
   @@index([userId])
   @@map("ideas")
 }
