@@ -38,6 +38,17 @@ export const Dashboard = () => {
     }
   };
 
+  const handleRetry = async (id: string) => {
+    try {
+      await ideaService.analyzeIdea(id);
+      // Reload ideas to get updated status
+      await loadIdeas();
+    } catch (err: any) {
+      alert(err.response?.data?.error || "Failed to retry analysis");
+      throw err; // Re-throw so IdeaCard can handle loading state
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex h-96 items-center justify-center">
@@ -63,7 +74,7 @@ export const Dashboard = () => {
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {ideas.map((idea) => (
-            <IdeaCard key={idea.id} idea={idea} onDelete={handleDelete} />
+            <IdeaCard key={idea.id} idea={idea} onDelete={handleDelete} onRetry={handleRetry} />
           ))}
         </div>
       )}
