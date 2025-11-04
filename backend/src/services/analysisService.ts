@@ -22,7 +22,11 @@ const generateAnalysis = async (
   return result;
 };
 
-export const analyzeIdea = async (ideaId: string, userId: string) => {
+export const analyzeIdea = async (
+  ideaId: string,
+  userId: string,
+  sendEvent?: (eventType: string, data: any) => void
+) => {
   // Get idea
   const idea = await prisma.idea.findFirst({
     where: {
@@ -72,13 +76,24 @@ export const analyzeIdea = async (ideaId: string, userId: string) => {
         userProfile || undefined
       );
 
-      await prisma.analysis.create({
+      const analysis = await prisma.analysis.create({
         data: {
           ideaId,
           sectionType,
           content: content as any,
         },
       });
+
+      // Send SSE event when section is completed
+      if (sendEvent) {
+        sendEvent('section', {
+          id: analysis.id,
+          ideaId: analysis.ideaId,
+          sectionType: analysis.sectionType,
+          content: analysis.content,
+          createdAt: analysis.createdAt,
+        });
+      }
     }
 
     // Update status to completed

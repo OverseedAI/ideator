@@ -21,10 +21,7 @@ export const NewIdea = () => {
     try {
       const idea = await ideaService.createIdea({ title, description });
 
-      // Trigger analysis in the background (don't wait for it)
-      ideaService.analyzeIdea(idea.id).catch(console.error);
-
-      // Redirect immediately
+      // Redirect immediately - analysis will be triggered automatically in IdeaDetail
       navigate(`/app/ideas/${idea.id}`);
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to create idea');

@@ -27,7 +27,7 @@ export const IdeaDetail = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
-  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const streamCleanupRef = useRef<(() => void) | null>(null);
 
   const loadIdea = async () => {
     if (!id) return;
@@ -55,33 +55,94 @@ export const IdeaDetail = () => {
     setError('');
     loadIdea();
 
-    // Set up polling for analyzing status
+    // Clean up streaming connection
     return () => {
-      if (pollIntervalRef.current) {
-        clearInterval(pollIntervalRef.current);
+      if (streamCleanupRef.current) {
+        streamCleanupRef.current();
+        streamCleanupRef.current = null;
       }
     };
   }, [id]);
 
-  // Poll for updates when analyzing
+  // Auto-trigger analysis for pending ideas or set up streaming for analyzing ideas
   useEffect(() => {
-    if (idea?.status === 'analyzing') {
-      pollIntervalRef.current = setInterval(() => {
-        loadIdea();
-      }, 3000); // Poll every 3 seconds
-    } else {
-      if (pollIntervalRef.current) {
-        clearInterval(pollIntervalRef.current);
-        pollIntervalRef.current = null;
-      }
+    if (!idea || streamCleanupRef.current) return;
+
+    if (idea.status === 'pending') {
+      // Trigger analysis by starting the stream
+      // The backend will update status to 'analyzing' when it starts
+      setIdea((prev) => prev ? { ...prev, status: 'analyzing' } : null);
+
+      const cleanup = ideaService.analyzeIdeaStream(
+        idea.id,
+        // On section received
+        (analysis: Analysis) => {
+          setAnalyses((prev) => {
+            // Check if this section already exists
+            const exists = prev.find((a) => a.sectionType === analysis.sectionType);
+            if (exists) {
+              return prev; // Don't add duplicates
+            }
+            return [...prev, analysis];
+          });
+        },
+        // On complete
+        () => {
+          setIdea((prev) => prev ? { ...prev, status: 'completed' } : null);
+          if (streamCleanupRef.current) {
+            streamCleanupRef.current = null;
+          }
+        },
+        // On error
+        (errorMsg: string) => {
+          setError(errorMsg);
+          setIdea((prev) => prev ? { ...prev, status: 'failed' } : null);
+          if (streamCleanupRef.current) {
+            streamCleanupRef.current = null;
+          }
+        }
+      );
+
+      streamCleanupRef.current = cleanup;
+    } else if (idea.status === 'analyzing') {
+      // Already analyzing, just set up the stream to catch updates
+      const cleanup = ideaService.analyzeIdeaStream(
+        idea.id,
+        // On section received
+        (analysis: Analysis) => {
+          setAnalyses((prev) => {
+            // Check if this section already exists
+            const exists = prev.find((a) => a.sectionType === analysis.sectionType);
+            if (exists) {
+              return prev; // Don't add duplicates
+            }
+            return [...prev, analysis];
+          });
+        },
+        // On complete
+        () => {
+          setIdea((prev) => prev ? { ...prev, status: 'completed' } : null);
+          if (streamCleanupRef.current) {
+            streamCleanupRef.current = null;
+          }
+        },
+        // On error
+        (errorMsg: string) => {
+          setError(errorMsg);
+          setIdea((prev) => prev ? { ...prev, status: 'failed' } : null);
+          if (streamCleanupRef.current) {
+            streamCleanupRef.current = null;
+          }
+        }
+      );
+
+      streamCleanupRef.current = cleanup;
     }
 
     return () => {
-      if (pollIntervalRef.current) {
-        clearInterval(pollIntervalRef.current);
-      }
+      // Don't clean up here, let the id change effect handle it
     };
-  }, [idea?.status]);
+  }, [idea?.status, idea?.id]);
 
   const getAnalysis = (type: AnalysisSectionType) => {
     return analyses.find((a) => a.sectionType === type);
@@ -170,23 +231,12 @@ export const IdeaDetail = () => {
       </Card>
 
       {idea.status === 'analyzing' && (
-        <>
-          <div className="mb-8 rounded-lg bg-blue-50 p-4 text-blue-800">
-            <div className="flex items-center gap-3">
-              <LoadingSpinner size="sm" />
-              <span>AI is analyzing your idea. This may take a few moments...</span>
-            </div>
+        <div className="mb-8 rounded-lg bg-blue-50 p-4 text-blue-800">
+          <div className="flex items-center gap-3">
+            <LoadingSpinner size="sm" />
+            <span>AI is analyzing your idea. Sections will appear as they complete...</span>
           </div>
-          <div className="space-y-8">
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-          </div>
-        </>
+        </div>
       )}
 
       {idea.status === 'failed' && (
@@ -195,7 +245,7 @@ export const IdeaDetail = () => {
         </div>
       )}
 
-      {idea.status === 'completed' && analyses.length > 0 && (
+      {analyses.length > 0 && (
         <>
           <div className="space-y-8">
             {getAnalysis('education') && (

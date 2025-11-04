@@ -15,9 +15,31 @@ export const analyzeIdea = asyncHandler(
     const userId = req.user!.userId;
     const { id } = req.params;
 
-    const result = await analysisService.analyzeIdea(id, userId);
+    // Set up Server-Sent Events
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('X-Accel-Buffering', 'no'); // Disable nginx buffering
 
-    res.status(200).json(result);
+    // Callback to send SSE events
+    const sendEvent = (eventType: string, data: any) => {
+      res.write(`event: ${eventType}\n`);
+      res.write(`data: ${JSON.stringify(data)}\n\n`);
+    };
+
+    try {
+      await analysisService.analyzeIdea(id, userId, sendEvent);
+
+      // Send completion event
+      sendEvent('complete', { message: 'Analysis completed successfully' });
+      res.end();
+    } catch (error) {
+      // Send error event
+      sendEvent('error', {
+        message: error instanceof Error ? error.message : 'Analysis failed'
+      });
+      res.end();
+    }
   }
 );
 
