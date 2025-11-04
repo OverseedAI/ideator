@@ -1,6 +1,6 @@
-import { config } from './config';
-import { connectDatabase, disconnectDatabase } from './db';
-import { createApp } from './app';
+import { config } from "./config";
+import { connectDatabase, disconnectDatabase } from "./db";
+import { createApp } from "./app";
 
 const startServer = async () => {
   try {
@@ -22,21 +22,21 @@ const startServer = async () => {
 
       server.close(async () => {
         await disconnectDatabase();
-        console.log('✅ Server closed');
+        console.log("✅ Server closed");
         process.exit(0);
       });
 
       // Force close after 10 seconds
       setTimeout(() => {
-        console.error('❌ Forced shutdown after timeout');
+        console.error("❌ Forced shutdown after timeout");
         process.exit(1);
       }, 10000);
     };
 
-    process.on('SIGTERM', () => shutdown('SIGTERM'));
-    process.on('SIGINT', () => shutdown('SIGINT'));
+    process.on("SIGTERM", () => shutdown("SIGTERM"));
+    process.on("SIGINT", () => shutdown("SIGINT"));
   } catch (error) {
-    console.error('❌ Failed to start server:', error);
+    console.error("❌ Failed to start server:", error);
     process.exit(1);
   }
 };

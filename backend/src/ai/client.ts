@@ -1,7 +1,7 @@
-import { openai } from '@ai-sdk/openai';
-import { generateText, generateObject } from 'ai';
-import { z } from 'zod';
-import { config } from '../config';
+import { openai } from "@ai-sdk/openai";
+import { generateText, generateObject } from "ai";
+import { z } from "zod";
+import { config } from "../config";
 
 export const createAIClient = () => {
   const model = openai(config.ai.model);
@@ -11,10 +11,8 @@ export const createAIClient = () => {
       const result = await generateText({
         model,
         messages: [
-          ...(systemPrompt
-            ? [{ role: 'system' as const, content: systemPrompt }]
-            : []),
-          { role: 'user' as const, content: prompt },
+          ...(systemPrompt ? [{ role: "system" as const, content: systemPrompt }] : []),
+          { role: "user" as const, content: prompt },
         ],
         temperature: 0.7,
         maxTokens: 2000,
@@ -32,10 +30,8 @@ export const createAIClient = () => {
         model,
         schema,
         messages: [
-          ...(systemPrompt
-            ? [{ role: 'system' as const, content: systemPrompt }]
-            : []),
-          { role: 'user' as const, content: prompt },
+          ...(systemPrompt ? [{ role: "system" as const, content: systemPrompt }] : []),
+          { role: "user" as const, content: prompt },
         ],
         temperature: 0.7,
       });

@@ -1,13 +1,13 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './hooks/useAuth';
-import { AppLayout } from './components/layout/AppLayout';
-import { Login } from './pages/Login';
-import { Signup } from './pages/Signup';
-import { Dashboard } from './pages/app/Dashboard';
-import { NewIdea } from './pages/app/NewIdea';
-import { IdeaDetail } from './pages/app/IdeaDetail';
-import { Profile } from './pages/app/Profile';
-import { Settings } from './pages/app/Settings';
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "./hooks/useAuth";
+import { AppLayout } from "./components/layout/AppLayout";
+import { Login } from "./pages/Login";
+import { Signup } from "./pages/Signup";
+import { Dashboard } from "./pages/app/Dashboard";
+import { NewIdea } from "./pages/app/NewIdea";
+import { IdeaDetail } from "./pages/app/IdeaDetail";
+import { Profile } from "./pages/app/Profile";
+import { Settings } from "./pages/app/Settings";
 
 function App() {
   return (

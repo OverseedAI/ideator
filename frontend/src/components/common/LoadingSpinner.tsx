@@ -1,28 +1,21 @@
-import { HTMLAttributes } from 'react';
-import { cn } from '@/utils/cn';
+import { HTMLAttributes } from "react";
+import { cn } from "@/utils/cn";
 
 interface LoadingSpinnerProps extends HTMLAttributes<HTMLDivElement> {
-  size?: 'sm' | 'md' | 'lg';
+  size?: "sm" | "md" | "lg";
 }
 
-export const LoadingSpinner = ({
-  size = 'md',
-  className,
-  ...props
-}: LoadingSpinnerProps) => {
+export const LoadingSpinner = ({ size = "md", className, ...props }: LoadingSpinnerProps) => {
   const sizes = {
-    sm: 'h-4 w-4',
-    md: 'h-8 w-8',
-    lg: 'h-12 w-12',
+    sm: "h-4 w-4",
+    md: "h-8 w-8",
+    lg: "h-12 w-12",
   };
 
   return (
-    <div
-      className={cn('flex items-center justify-center', className)}
-      {...props}
-    >
+    <div className={cn("flex items-center justify-center", className)} {...props}>
       <svg
-        className={cn('animate-spin text-primary', sizes[size])}
+        className={cn("animate-spin text-primary", sizes[size])}
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
         viewBox="0 0 24 24"

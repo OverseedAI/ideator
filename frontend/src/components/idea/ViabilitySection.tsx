@@ -1,6 +1,6 @@
-import { ViabilityContent } from '@/types';
-import { AnalysisSection } from './AnalysisSection';
-import { BarChart3 } from 'lucide-react';
+import { ViabilityContent } from "@/types";
+import { AnalysisSection } from "./AnalysisSection";
+import { BarChart3 } from "lucide-react";
 
 interface ViabilitySectionProps {
   content: ViabilityContent;
@@ -8,9 +8,9 @@ interface ViabilitySectionProps {
 
 export const ViabilitySection = ({ content }: ViabilitySectionProps) => {
   const getScoreColor = (score: number) => {
-    if (score >= 70) return 'text-green-600';
-    if (score >= 40) return 'text-yellow-600';
-    return 'text-red-600';
+    if (score >= 70) return "text-green-600";
+    if (score >= 40) return "text-yellow-600";
+    return "text-red-600";
   };
 
   return (
@@ -22,14 +22,10 @@ export const ViabilitySection = ({ content }: ViabilitySectionProps) => {
       <div className="space-y-6">
         <div className="flex items-center justify-center">
           <div className="text-center">
-            <div
-              className={`text-6xl font-bold ${getScoreColor(content.score)}`}
-            >
+            <div className={`text-6xl font-bold ${getScoreColor(content.score)}`}>
               {content.score}
             </div>
-            <div className="mt-2 text-text-secondary">
-              out of 100
-            </div>
+            <div className="mt-2 text-text-secondary">out of 100</div>
           </div>
         </div>
 
@@ -39,9 +35,7 @@ export const ViabilitySection = ({ content }: ViabilitySectionProps) => {
             {content.factors.map((factor, idx) => (
               <div key={idx}>
                 <div className="mb-2 flex items-center justify-between">
-                  <span className="font-medium text-text-primary">
-                    {factor.category}
-                  </span>
+                  <span className="font-medium text-text-primary">{factor.category}</span>
                   <span className={`font-semibold ${getScoreColor(factor.score)}`}>
                     {factor.score}/100
                   </span>

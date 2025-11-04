@@ -1,6 +1,6 @@
-import { Request, Response, NextFunction } from 'express';
-import { ZodError } from 'zod';
-import { isDevelopment } from '../config';
+import { Request, Response, NextFunction } from "express";
+import { ZodError } from "zod";
+import { isDevelopment } from "../config";
 
 export class AppError extends Error {
   constructor(
@@ -29,16 +29,16 @@ export const errorHandler = (
 
   if (err instanceof ZodError) {
     res.status(400).json({
-      error: 'Validation error',
+      error: "Validation error",
       details: err.errors,
     });
     return;
   }
 
-  console.error('Unhandled error:', err);
+  console.error("Unhandled error:", err);
 
   res.status(500).json({
-    error: 'Internal server error',
+    error: "Internal server error",
     ...(isDevelopment && { details: err.message }),
   });
 };
@@ -50,6 +50,6 @@ export const notFoundHandler = (
   next: NextFunction
 ): void => {
   res.status(404).json({
-    error: 'Route not found',
+    error: "Route not found",
   });
 };

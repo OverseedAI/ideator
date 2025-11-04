@@ -1,9 +1,9 @@
-import express, { Application } from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import { config } from './config';
-import { errorHandler, notFoundHandler } from './middleware/errorHandler';
-import v1Routes from './routes/v1';
+import express, { Application } from "express";
+import cors from "cors";
+import helmet from "helmet";
+import { config } from "./config";
+import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
+import v1Routes from "./routes/v1";
 
 export const createApp = (): Application => {
   const app = express();
@@ -24,12 +24,12 @@ export const createApp = (): Application => {
   app.use(express.urlencoded({ extended: true }));
 
   // Health check
-  app.get('/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  app.get("/health", (req, res) => {
+    res.json({ status: "ok", timestamp: new Date().toISOString() });
   });
 
   // API routes
-  app.use('/api/v1', v1Routes);
+  app.use("/api/v1", v1Routes);
 
   // Error handling
   app.use(notFoundHandler);

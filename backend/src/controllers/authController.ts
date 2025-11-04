@@ -1,8 +1,8 @@
-import { Response } from 'express';
-import { z } from 'zod';
-import { AuthRequest } from '../types';
-import { asyncHandler } from '../utils/asyncHandler';
-import * as authService from '../services/authService';
+import { Response } from "express";
+import { z } from "zod";
+import { AuthRequest } from "../types";
+import { asyncHandler } from "../utils/asyncHandler";
+import * as authService from "../services/authService";
 
 const signupSchema = z.object({
   body: z.object({
@@ -19,34 +19,28 @@ const loginSchema = z.object({
   }),
 });
 
-export const signup = asyncHandler(
-  async (req: AuthRequest, res: Response): Promise<void> => {
-    const { email, password, name } = req.body;
+export const signup = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
+  const { email, password, name } = req.body;
 
-    const result = await authService.signup({ email, password, name });
+  const result = await authService.signup({ email, password, name });
 
-    res.status(201).json(result);
-  }
-);
+  res.status(201).json(result);
+});
 
-export const login = asyncHandler(
-  async (req: AuthRequest, res: Response): Promise<void> => {
-    const { email, password } = req.body;
+export const login = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
+  const { email, password } = req.body;
 
-    const result = await authService.login({ email, password });
+  const result = await authService.login({ email, password });
 
-    res.status(200).json(result);
-  }
-);
+  res.status(200).json(result);
+});
 
-export const getMe = asyncHandler(
-  async (req: AuthRequest, res: Response): Promise<void> => {
-    const userId = req.user!.userId;
+export const getMe = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
+  const userId = req.user!.userId;
 
-    const user = await authService.getMe(userId);
+  const user = await authService.getMe(userId);
 
-    res.status(200).json(user);
-  }
-);
+  res.status(200).json(user);
+});
 
 export { signupSchema, loginSchema };

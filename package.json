@@ -10,12 +10,15 @@
     "build": "pnpm -r build",
     "build:backend": "pnpm --filter backend build",
     "build:frontend": "pnpm --filter frontend build",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json}\" --ignore-path .prettierignore",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json}\" --ignore-path .prettierignore",
     "docker:dev": "docker-compose up",
     "docker:prod": "docker-compose -f docker-compose.prod.yml up",
     "docker:build": "docker-compose -f docker-compose.prod.yml build"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "prettier": "^3.3.2"
   },
   "engines": {
     "node": ">=20.0.0",

@@ -1,8 +1,8 @@
-import { Response } from 'express';
-import { z } from 'zod';
-import { AuthRequest } from '../types';
-import { asyncHandler } from '../utils/asyncHandler';
-import * as profileService from '../services/profileService';
+import { Response } from "express";
+import { z } from "zod";
+import { AuthRequest } from "../types";
+import { asyncHandler } from "../utils/asyncHandler";
+import * as profileService from "../services/profileService";
 
 const updateProfileSchema = z.object({
   body: z.object({
@@ -21,15 +21,13 @@ const updateProfileSchema = z.object({
   }),
 });
 
-export const getProfile = asyncHandler(
-  async (req: AuthRequest, res: Response): Promise<void> => {
-    const userId = req.user!.userId;
+export const getProfile = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
+  const userId = req.user!.userId;
 
-    const profile = await profileService.getProfile(userId);
+  const profile = await profileService.getProfile(userId);
 
-    res.status(200).json(profile);
-  }
-);
+  res.status(200).json(profile);
+});
 
 export const updateProfile = asyncHandler(
   async (req: AuthRequest, res: Response): Promise<void> => {
