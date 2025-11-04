@@ -4,7 +4,7 @@
 
 @layer base {
   body {
-    @apply bg-background text-text-primary antialiased;
+    @apply bg-background text-text-primary antialiased text-base;
   }
 
   h1 {
@@ -20,19 +20,19 @@
   }
 
   h4 {
-    @apply text-xl font-semibold tracking-tight;
-  }
-
-  h5 {
     @apply text-lg font-semibold tracking-tight;
   }
 
-  h6 {
+  h5 {
     @apply text-base font-semibold tracking-tight;
   }
 
+  h6 {
+    @apply text-base font-medium tracking-tight;
+  }
+
   p {
-    @apply text-text-secondary leading-relaxed;
+    @apply text-base text-text-secondary leading-relaxed;
   }
 }
 

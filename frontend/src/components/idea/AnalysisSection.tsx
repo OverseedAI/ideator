@@ -4,18 +4,20 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 interface AnalysisSectionProps {
   title: string;
   description?: string;
+  icon?: ReactNode;
   children: ReactNode;
 }
 
 export const AnalysisSection = ({
   title,
   description,
+  icon,
   children,
 }: AnalysisSectionProps) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{title}</CardTitle>
+        <CardTitle icon={icon}>{title}</CardTitle>
         {description && <CardDescription>{description}</CardDescription>}
       </CardHeader>
       <CardContent>{children}</CardContent>
