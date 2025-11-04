@@ -1,8 +1,8 @@
-import { ReactNode } from 'react';
-import { Navigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
-import { Sidebar } from './Sidebar';
-import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+import { ReactNode } from "react";
+import { Navigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { Sidebar } from "./Sidebar";
+import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 
 interface AppLayoutProps {
   children: ReactNode;

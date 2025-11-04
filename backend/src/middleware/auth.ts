@@ -1,18 +1,14 @@
-import { Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
-import { config } from '../config';
-import { AuthRequest, JwtPayload } from '../types';
+import { Response, NextFunction } from "express";
+import jwt from "jsonwebtoken";
+import { config } from "../config";
+import { AuthRequest, JwtPayload } from "../types";
 
-export const authenticate = (
-  req: AuthRequest,
-  res: Response,
-  next: NextFunction
-): void => {
+export const authenticate = (req: AuthRequest, res: Response, next: NextFunction): void => {
   try {
     const authHeader = req.headers.authorization;
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      res.status(401).json({ error: 'No token provided' });
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      res.status(401).json({ error: "No token provided" });
       return;
     }
 
@@ -24,9 +20,9 @@ export const authenticate = (
     next();
   } catch (error) {
     if (error instanceof jwt.JsonWebTokenError) {
-      res.status(401).json({ error: 'Invalid token' });
+      res.status(401).json({ error: "Invalid token" });
       return;
     }
-    res.status(500).json({ error: 'Authentication failed' });
+    res.status(500).json({ error: "Authentication failed" });
   }
 };

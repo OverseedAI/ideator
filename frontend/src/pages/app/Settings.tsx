@@ -1,7 +1,13 @@
-import { useAuth } from '@/hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/common/Card';
-import { Button } from '@/components/common/Button';
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/common/Card";
+import { Button } from "@/components/common/Button";
 
 export const Settings = () => {
   const { user, logout } = useAuth();
@@ -9,16 +15,14 @@ export const Settings = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate("/login");
   };
 
   return (
     <div>
       <div className="mb-8">
         <h1 className="text-3xl font-bold">Settings</h1>
-        <p className="mt-2 text-text-secondary">
-          Manage your account settings
-        </p>
+        <p className="mt-2 text-text-secondary">Manage your account settings</p>
       </div>
 
       <div className="space-y-6 max-w-3xl">
@@ -38,13 +42,9 @@ export const Settings = () => {
                 <dd className="mt-1 text-text-primary">{user?.name}</dd>
               </div>
               <div>
-                <dt className="text-sm font-medium text-text-secondary">
-                  Member Since
-                </dt>
+                <dt className="text-sm font-medium text-text-secondary">Member Since</dt>
                 <dd className="mt-1 text-text-primary">
-                  {user?.createdAt
-                    ? new Date(user.createdAt).toLocaleDateString()
-                    : 'N/A'}
+                  {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : "N/A"}
                 </dd>
               </div>
             </dl>
@@ -57,9 +57,7 @@ export const Settings = () => {
             <CardDescription>Customize your experience</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-text-secondary">
-              Additional settings coming soon...
-            </p>
+            <p className="text-text-secondary">Additional settings coming soon...</p>
           </CardContent>
         </Card>
 

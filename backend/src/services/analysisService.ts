@@ -1,9 +1,9 @@
-import { prisma } from '../db';
-import { AppError } from '../middleware/errorHandler';
-import { aiClient } from '../ai/client';
-import { analysisPrompts } from '../ai/prompts';
-import { analysisSchemas } from '../ai/schemas';
-import { AnalysisSectionType, UserProfileData } from '../types';
+import { prisma } from "../db";
+import { AppError } from "../middleware/errorHandler";
+import { aiClient } from "../ai/client";
+import { analysisPrompts } from "../ai/prompts";
+import { analysisSchemas } from "../ai/schemas";
+import { AnalysisSectionType, UserProfileData } from "../types";
 
 const generateAnalysis = async (
   sectionType: AnalysisSectionType,
@@ -16,7 +16,7 @@ const generateAnalysis = async (
   const schema = analysisSchemas[sectionType];
 
   const systemPrompt =
-    'You are a business analyst helping entrepreneurs evaluate their ideas. Provide thorough, actionable insights.';
+    "You are a business analyst helping entrepreneurs evaluate their ideas. Provide thorough, actionable insights.";
 
   const result = await aiClient.generateStructuredOutput(prompt, schema, systemPrompt);
   return result;
@@ -36,7 +36,7 @@ export const analyzeIdea = async (
   });
 
   if (!idea) {
-    throw new AppError(404, 'Idea not found');
+    throw new AppError(404, "Idea not found");
   }
 
   // Get user profile
@@ -45,27 +45,32 @@ export const analyzeIdea = async (
   });
 
   if (!user) {
-    throw new AppError(404, 'User not found');
+    throw new AppError(404, "User not found");
   }
 
   const userProfile = user.profileData as UserProfileData | null;
 
+  // Delete existing analyses if retrying
+  await prisma.analysis.deleteMany({
+    where: { ideaId },
+  });
+
   // Update status to analyzing
   await prisma.idea.update({
     where: { id: ideaId },
-    data: { status: 'analyzing' },
+    data: { status: "analyzing" },
   });
 
   try {
     // Generate all analyses
     const sections: AnalysisSectionType[] = [
-      'education',
-      'swot',
-      'features',
-      'business_values',
-      'pmf',
-      'next_steps',
-      'viability',
+      "education",
+      "swot",
+      "features",
+      "business_values",
+      "pmf",
+      "next_steps",
+      "viability",
     ];
 
     for (const sectionType of sections) {
@@ -99,15 +104,15 @@ export const analyzeIdea = async (
     // Update status to completed
     await prisma.idea.update({
       where: { id: ideaId },
-      data: { status: 'completed' },
+      data: { status: "completed" },
     });
 
-    return { message: 'Analysis completed successfully' };
+    return { message: "Analysis completed successfully" };
   } catch (error) {
     // Update status to failed
     await prisma.idea.update({
       where: { id: ideaId },
-      data: { status: 'failed' },
+      data: { status: "failed" },
     });
 
     throw error;
@@ -124,12 +129,12 @@ export const getAnalyses = async (ideaId: string, userId: string) => {
   });
 
   if (!idea) {
-    throw new AppError(404, 'Idea not found');
+    throw new AppError(404, "Idea not found");
   }
 
   const analyses = await prisma.analysis.findMany({
     where: { ideaId },
-    orderBy: { createdAt: 'asc' },
+    orderBy: { createdAt: "asc" },
   });
 
   return analyses;

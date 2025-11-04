@@ -22,7 +22,7 @@ export interface Idea {
   userId: string;
   title: string;
   description: string;
-  status: 'pending' | 'analyzing' | 'completed' | 'failed';
+  status: "pending" | "analyzing" | "completed" | "failed";
   createdAt: string;
   updatedAt: string;
   analyses?: Analysis[];
@@ -37,13 +37,13 @@ export interface Analysis {
 }
 
 export type AnalysisSectionType =
-  | 'education'
-  | 'swot'
-  | 'features'
-  | 'business_values'
-  | 'pmf'
-  | 'next_steps'
-  | 'viability';
+  | "education"
+  | "swot"
+  | "features"
+  | "business_values"
+  | "pmf"
+  | "next_steps"
+  | "viability";
 
 export interface EducationContent {
   keywords: string[];
@@ -85,7 +85,7 @@ export interface PmfContent {
   strategies: {
     title: string;
     description: string;
-    effort: 'low' | 'medium' | 'high';
+    effort: "low" | "medium" | "high";
     timeline: string;
   }[];
 }

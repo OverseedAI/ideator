@@ -1,7 +1,7 @@
-import { EducationContent } from '@/types';
-import { AnalysisSection } from './AnalysisSection';
-import { Badge } from '@/components/common/Badge';
-import { GraduationCap } from 'lucide-react';
+import { EducationContent } from "@/types";
+import { AnalysisSection } from "./AnalysisSection";
+import { Badge } from "@/components/common/Badge";
+import { GraduationCap } from "lucide-react";
 
 interface EducationSectionProps {
   content: EducationContent;

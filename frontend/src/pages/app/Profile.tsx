@@ -1,54 +1,66 @@
-import { useState, useEffect, FormEvent } from 'react';
-import { UserProfileData } from '@/types';
-import { useAuth } from '@/hooks/useAuth';
-import * as profileService from '@/services/profileService';
-import { Input } from '@/components/common/Input';
-import { Textarea } from '@/components/common/Textarea';
-import { Button } from '@/components/common/Button';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/common/Card';
+import { useState, useEffect, FormEvent } from "react";
+import { UserProfileData } from "@/types";
+import { useAuth } from "@/hooks/useAuth";
+import * as profileService from "@/services/profileService";
+import { Input } from "@/components/common/Input";
+import { Textarea } from "@/components/common/Textarea";
+import { Button } from "@/components/common/Button";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/common/Card";
 
 export const Profile = () => {
   const { user, refreshUser } = useAuth();
-  const [name, setName] = useState(user?.name || '');
-  const [expertise, setExpertise] = useState('');
-  const [funding, setFunding] = useState('');
-  const [followers, setFollowers] = useState('');
-  const [linkedInUrl, setLinkedInUrl] = useState('');
-  const [company, setCompany] = useState('');
-  const [experience, setExperience] = useState('');
-  const [industries, setIndustries] = useState('');
+  const [name, setName] = useState(user?.name || "");
+  const [expertise, setExpertise] = useState("");
+  const [funding, setFunding] = useState("");
+  const [followers, setFollowers] = useState("");
+  const [linkedInUrl, setLinkedInUrl] = useState("");
+  const [company, setCompany] = useState("");
+  const [experience, setExperience] = useState("");
+  const [industries, setIndustries] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [success, setSuccess] = useState('');
-  const [error, setError] = useState('');
+  const [success, setSuccess] = useState("");
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (user?.profileData) {
       const profile = user.profileData;
-      setExpertise(profile.expertise?.join(', ') || '');
-      setFunding(profile.funding || '');
-      setFollowers(profile.followers?.toString() || '');
-      setLinkedInUrl(profile.linkedInUrl || '');
-      setCompany(profile.company || '');
-      setExperience(profile.experience || '');
-      setIndustries(profile.industries?.join(', ') || '');
+      setExpertise(profile.expertise?.join(", ") || "");
+      setFunding(profile.funding || "");
+      setFollowers(profile.followers?.toString() || "");
+      setLinkedInUrl(profile.linkedInUrl || "");
+      setCompany(profile.company || "");
+      setExperience(profile.experience || "");
+      setIndustries(profile.industries?.join(", ") || "");
     }
   }, [user]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
     setIsLoading(true);
 
     try {
       const profileData: UserProfileData = {
-        expertise: expertise.split(',').map((s) => s.trim()).filter(Boolean),
+        expertise: expertise
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean),
         funding: funding || undefined,
         followers: followers ? parseInt(followers) : undefined,
         linkedInUrl: linkedInUrl || undefined,
         company: company || undefined,
         experience: experience || undefined,
-        industries: industries.split(',').map((s) => s.trim()).filter(Boolean),
+        industries: industries
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean),
       };
 
       await profileService.updateProfile({
@@ -57,9 +69,9 @@ export const Profile = () => {
       });
 
       await refreshUser();
-      setSuccess('Profile updated successfully!');
+      setSuccess("Profile updated successfully!");
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to update profile');
+      setError(err.response?.data?.error || "Failed to update profile");
     } finally {
       setIsLoading(false);
     }
@@ -69,9 +81,7 @@ export const Profile = () => {
     <div>
       <div className="mb-8">
         <h1 className="text-3xl font-bold">Profile</h1>
-        <p className="mt-2 text-text-secondary">
-          Update your profile to get personalized analysis
-        </p>
+        <p className="mt-2 text-text-secondary">Update your profile to get personalized analysis</p>
       </div>
 
       <Card className="max-w-3xl">
@@ -84,16 +94,10 @@ export const Profile = () => {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             {success && (
-              <div className="rounded-lg bg-green-50 p-3 text-sm text-green-800">
-                {success}
-              </div>
+              <div className="rounded-lg bg-green-50 p-3 text-sm text-green-800">{success}</div>
             )}
 
-            {error && (
-              <div className="rounded-lg bg-red-50 p-3 text-sm text-red-800">
-                {error}
-              </div>
-            )}
+            {error && <div className="rounded-lg bg-red-50 p-3 text-sm text-red-800">{error}</div>}
 
             <Input
               label="Name"

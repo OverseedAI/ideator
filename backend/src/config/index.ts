@@ -1,27 +1,27 @@
-import dotenv from 'dotenv';
-import { z } from 'zod';
+import dotenv from "dotenv";
+import { z } from "zod";
 
 dotenv.config();
 
 const configSchema = z.object({
-  nodeEnv: z.enum(['development', 'production', 'test']).default('development'),
+  nodeEnv: z.enum(["development", "production", "test"]).default("development"),
   port: z.coerce.number().default(3000),
-  host: z.string().default('0.0.0.0'),
+  host: z.string().default("0.0.0.0"),
 
   databaseUrl: z.string().min(1),
 
   jwt: z.object({
     secret: z.string().min(32),
-    expiresIn: z.string().default('7d'),
+    expiresIn: z.string().default("7d"),
   }),
 
   ai: z.object({
     apiKey: z.string().min(1),
-    model: z.string().default('gpt-4o'),
+    model: z.string().default("gpt-4o"),
   }),
 
   cors: z.object({
-    allowedOrigins: z.array(z.string()).default(['http://localhost:5173']),
+    allowedOrigins: z.array(z.string()).default(["http://localhost:5173"]),
   }),
 });
 
@@ -40,7 +40,7 @@ const parseConfig = () => {
       model: process.env.AI_MODEL,
     },
     cors: {
-      allowedOrigins: process.env.ALLOWED_ORIGINS?.split(',') || undefined,
+      allowedOrigins: process.env.ALLOWED_ORIGINS?.split(",") || undefined,
     },
   };
 
@@ -49,6 +49,6 @@ const parseConfig = () => {
 
 export const config = parseConfig();
 
-export const isDevelopment = config.nodeEnv === 'development';
-export const isProduction = config.nodeEnv === 'production';
-export const isTest = config.nodeEnv === 'test';
+export const isDevelopment = config.nodeEnv === "development";
+export const isProduction = config.nodeEnv === "production";
+export const isTest = config.nodeEnv === "test";

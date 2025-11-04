@@ -1,16 +1,16 @@
-import { ButtonHTMLAttributes, ReactNode } from 'react';
-import { cn } from '@/utils/cn';
+import { ButtonHTMLAttributes, ReactNode } from "react";
+import { cn } from "@/utils/cn";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
-  size?: 'sm' | 'md' | 'lg';
+  variant?: "primary" | "secondary" | "ghost" | "danger";
+  size?: "sm" | "md" | "lg";
   children: ReactNode;
   isLoading?: boolean;
 }
 
 export const Button = ({
-  variant = 'primary',
-  size = 'md',
+  variant = "primary",
+  size = "md",
   children,
   className,
   isLoading,
@@ -18,22 +18,20 @@ export const Button = ({
   ...props
 }: ButtonProps) => {
   const baseStyles =
-    'inline-flex items-center justify-center font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
+    "inline-flex items-center justify-center font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed";
 
   const variants = {
-    primary:
-      'bg-primary text-white hover:bg-primary-dark focus:ring-primary shadow-subtle',
+    primary: "bg-primary text-white hover:bg-primary-dark focus:ring-primary shadow-subtle",
     secondary:
-      'bg-surface text-primary border border-border hover:bg-background focus:ring-primary',
-    ghost: 'text-primary hover:bg-background focus:ring-primary',
-    danger:
-      'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 shadow-subtle',
+      "bg-surface text-primary border border-border hover:bg-background focus:ring-primary",
+    ghost: "text-primary hover:bg-background focus:ring-primary",
+    danger: "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 shadow-subtle",
   };
 
   const sizes = {
-    sm: 'px-3 py-1.5 text-sm rounded-md',
-    md: 'px-4 py-2 text-base rounded-lg',
-    lg: 'px-6 py-3 text-lg rounded-lg',
+    sm: "px-3 py-1.5 text-sm rounded-md",
+    md: "px-4 py-2 text-base rounded-lg",
+    lg: "px-6 py-3 text-lg rounded-lg",
   };
 
   return (

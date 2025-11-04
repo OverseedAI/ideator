@@ -1,6 +1,6 @@
-import { FeaturesContent } from '@/types';
-import { AnalysisSection } from './AnalysisSection';
-import { Zap } from 'lucide-react';
+import { FeaturesContent } from "@/types";
+import { AnalysisSection } from "./AnalysisSection";
+import { Zap } from "lucide-react";
 
 interface FeaturesSectionProps {
   content: FeaturesContent;
@@ -20,9 +20,7 @@ export const FeaturesSection = ({ content }: FeaturesSectionProps) => {
           <h4 className="mb-3">Recommended Features</h4>
           <ul className="modern-list md:grid md:grid-cols-2">
             {content.features.map((feature, idx) => (
-              <li key={idx}>
-                {feature}
-              </li>
+              <li key={idx}>{feature}</li>
             ))}
           </ul>
         </div>
@@ -33,14 +31,9 @@ export const FeaturesSection = ({ content }: FeaturesSectionProps) => {
             <table className="w-full border-collapse text-base">
               <thead>
                 <tr className="border-b border-border">
-                  <th className="px-4 py-3 text-left font-semibold">
-                    Competitor
-                  </th>
+                  <th className="px-4 py-3 text-left font-semibold">Competitor</th>
                   {allFeatures.map((feature, idx) => (
-                    <th
-                      key={idx}
-                      className="px-4 py-3 text-center font-semibold"
-                    >
+                    <th key={idx} className="px-4 py-3 text-center font-semibold">
                       {feature}
                     </th>
                   ))}
@@ -49,9 +42,7 @@ export const FeaturesSection = ({ content }: FeaturesSectionProps) => {
               <tbody>
                 {content.competitiveAnalysis.map((competitor, idx) => (
                   <tr key={idx} className="border-b border-border">
-                    <td className="px-4 py-3 font-medium">
-                      {competitor.competitor}
-                    </td>
+                    <td className="px-4 py-3 font-medium">{competitor.competitor}</td>
                     {allFeatures.map((feature, fIdx) => (
                       <td key={fIdx} className="px-4 py-3 text-center">
                         {competitor.features[feature] ? (

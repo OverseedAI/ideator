@@ -1,5 +1,11 @@
-import { ReactNode } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/common/Card';
+import { ReactNode } from "react";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/common/Card";
 
 interface AnalysisSectionProps {
   title: string;
@@ -8,12 +14,7 @@ interface AnalysisSectionProps {
   children: ReactNode;
 }
 
-export const AnalysisSection = ({
-  title,
-  description,
-  icon,
-  children,
-}: AnalysisSectionProps) => {
+export const AnalysisSection = ({ title, description, icon, children }: AnalysisSectionProps) => {
   return (
     <Card>
       <CardHeader>
