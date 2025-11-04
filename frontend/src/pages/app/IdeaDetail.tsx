@@ -27,7 +27,8 @@ export const IdeaDetail = () => {
     if (!id) return;
 
     try {
-      if (isLoading) setIsLoading(true);
+      setIsLoading(true);
+      setError('');
       const [ideaData, analysesData] = await Promise.all([
         ideaService.getIdeaById(id),
         ideaService.getIdeaAnalyses(id),
@@ -42,6 +43,10 @@ export const IdeaDetail = () => {
   };
 
   useEffect(() => {
+    // Reset state when id changes
+    setIdea(null);
+    setAnalyses([]);
+    setError('');
     loadIdea();
 
     // Set up polling for analyzing status
