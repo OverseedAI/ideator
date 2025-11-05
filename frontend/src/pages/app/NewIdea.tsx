@@ -12,6 +12,7 @@ import {
 } from "@/components/common/Card";
 import { useAnalyzeIdea, useCreateIdea } from "@/hooks/queries/useIdeas";
 import { getErrorMessage } from "@/utils/error";
+import { showErrorToast } from "@/hooks/useToast";
 
 export const NewIdea = () => {
   const [title, setTitle] = useState("");
@@ -23,22 +24,23 @@ export const NewIdea = () => {
   const createErrorMessage = createIdeaMutation.error
     ? getErrorMessage(createIdeaMutation.error, "Failed to create idea")
     : "";
-  const analyzeErrorMessage = analyzeIdeaMutation.error
-    ? getErrorMessage(analyzeIdeaMutation.error, "Failed to start analysis")
-    : "";
-  const errorMessage = createErrorMessage || analyzeErrorMessage;
+  const errorMessage = createErrorMessage;
 
-  const isSubmitting = createIdeaMutation.isPending || analyzeIdeaMutation.isPending;
+  const isSubmitting = createIdeaMutation.isPending;
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
     try {
       const idea = await createIdeaMutation.mutateAsync({ title, description });
-      await analyzeIdeaMutation.mutateAsync(idea.id);
       navigate(`/app/ideas/${idea.id}`);
+
+      void analyzeIdeaMutation.mutateAsync(idea.id).catch((error) => {
+        console.error("Failed to start analysis", error);
+        showErrorToast(getErrorMessage(error, "Failed to start analysis"));
+      });
     } catch (err) {
-      console.error("Failed to create or analyze idea", err);
+      console.error("Failed to create idea", err);
     }
   };
 
