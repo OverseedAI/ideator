@@ -7,7 +7,7 @@ export const createAIClient = () => {
   const model = openai(config.ai.model);
 
   return {
-    generateText: async (prompt: string, systemPrompt?: string) => {
+    generateText: async (prompt: string, systemPrompt?: string): Promise<string> => {
       const result = await generateText({
         model,
         messages: [
@@ -25,7 +25,7 @@ export const createAIClient = () => {
       schema: z.ZodSchema<any>,
       systemPrompt?: string
     ): Promise<any> => {
-      const result = await generateObject({
+      const result: any = await generateObject({
         model,
         schema,
         messages: [
@@ -43,7 +43,7 @@ export const createAIClient = () => {
       schema: z.ZodSchema<any>,
       systemPrompt?: string
     ): Promise<any> => {
-      const result = await generateText({
+      const result: any = await generateText({
         model,
         messages: [
           ...(systemPrompt ? [{ role: "system" as const, content: systemPrompt }] : []),

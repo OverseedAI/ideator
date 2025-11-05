@@ -1,9 +1,9 @@
-import { Router } from "express";
+import { Router, type Router as RouterType } from "express";
 import * as profileController from "../../controllers/profileController";
 import { validate } from "../../middleware/validation";
 import { authenticate } from "../../middleware/auth";
 
-const router = Router();
+const router: RouterType = Router();
 
 router.get("/", authenticate, profileController.getProfile);
 
