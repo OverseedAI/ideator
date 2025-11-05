@@ -1,7 +1,7 @@
 import { Router } from "express";
 import * as analysisController from "../../controllers/analysisController";
 import { validate } from "../../middleware/validation";
-import { authenticate } from "../../middleware/auth";
+import { authenticate, authenticateSSE } from "../../middleware/auth";
 
 const router = Router();
 
@@ -10,6 +10,13 @@ router.post(
   authenticate,
   validate(analysisController.ideaIdSchema),
   analysisController.analyzeIdea
+);
+
+router.get(
+  "/:id/analyze/stream",
+  authenticateSSE,
+  validate(analysisController.ideaIdSchema),
+  analysisController.analyzeIdeaStream
 );
 
 router.get(

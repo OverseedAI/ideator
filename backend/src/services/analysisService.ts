@@ -28,7 +28,20 @@ const generateAnalysis = async (
   return result;
 };
 
-export const analyzeIdea = async (ideaId: string, userId: string) => {
+type AnalysisProgressCallback = (analysis: {
+  id: string;
+  ideaId: string;
+  sectionType: AnalysisSectionType;
+  content: any;
+  createdAt: Date;
+  updatedAt: Date;
+}) => void;
+
+export const analyzeIdea = async (
+  ideaId: string,
+  userId: string,
+  onProgress?: AnalysisProgressCallback
+) => {
   // Get idea
   const idea = await prisma.idea.findFirst({
     where: {
@@ -78,13 +91,18 @@ export const analyzeIdea = async (ideaId: string, userId: string) => {
         userProfile || undefined
       );
 
-      await prisma.analysis.create({
+      const analysis = await prisma.analysis.create({
         data: {
           ideaId,
           sectionType,
           content: content as any,
         },
       });
+
+      // Call progress callback if provided
+      if (onProgress) {
+        onProgress(analysis);
+      }
     }
 
     // Update status to completed

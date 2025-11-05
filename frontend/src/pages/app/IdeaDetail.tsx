@@ -28,7 +28,7 @@ export const IdeaDetail = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
-  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const eventSourceRef = useRef<EventSource | null>(null);
 
   const loadIdea = async () => {
     if (!id) return;
@@ -56,36 +56,77 @@ export const IdeaDetail = () => {
     setError("");
     loadIdea();
 
-    // Set up polling for analyzing status
     return () => {
-      if (pollIntervalRef.current) {
-        clearInterval(pollIntervalRef.current);
+      // Cleanup SSE connection
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+        eventSourceRef.current = null;
       }
     };
   }, [id]);
 
-  // Poll for updates when analyzing
+  // Set up SSE when analyzing
   useEffect(() => {
-    if (idea?.status === "analyzing") {
-      pollIntervalRef.current = setInterval(() => {
-        loadIdea();
-      }, 3000); // Poll every 3 seconds
-    } else {
-      if (pollIntervalRef.current) {
-        clearInterval(pollIntervalRef.current);
-        pollIntervalRef.current = null;
+    if (idea?.status === "analyzing" && id) {
+      // Close any existing connection
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
       }
+
+      // Start SSE connection
+      eventSourceRef.current = ideaService.analyzeIdeaStream(
+        id,
+        (event) => {
+          if (event.type === "analysis") {
+            // Add new analysis to the list
+            setAnalyses((prev) => {
+              // Check if this analysis already exists
+              const exists = prev.some((a) => a.sectionType === event.data.sectionType);
+              if (exists) {
+                return prev;
+              }
+              return [...prev, event.data];
+            });
+          } else if (event.type === "completed") {
+            // Update idea status to completed
+            setIdea((prev) => (prev ? { ...prev, status: "completed" } : null));
+            // Close SSE connection
+            if (eventSourceRef.current) {
+              eventSourceRef.current.close();
+              eventSourceRef.current = null;
+            }
+          } else if (event.type === "error") {
+            // Update idea status to failed
+            setIdea((prev) => (prev ? { ...prev, status: "failed" } : null));
+            setError(event.message);
+            // Close SSE connection
+            if (eventSourceRef.current) {
+              eventSourceRef.current.close();
+              eventSourceRef.current = null;
+            }
+          }
+        },
+        (error) => {
+          console.error("SSE connection error:", error);
+          setError("Connection error. Please refresh the page.");
+        }
+      );
     }
 
     return () => {
-      if (pollIntervalRef.current) {
-        clearInterval(pollIntervalRef.current);
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+        eventSourceRef.current = null;
       }
     };
-  }, [idea?.status]);
+  }, [idea?.status, id]);
 
   const getAnalysis = (type: AnalysisSectionType) => {
     return analyses.find((a) => a.sectionType === type);
+  };
+
+  const isSectionComplete = (type: AnalysisSectionType) => {
+    return analyses.some((a) => a.sectionType === type);
   };
 
   const handleDelete = async () => {
@@ -167,23 +208,14 @@ export const IdeaDetail = () => {
       </Card>
 
       {idea.status === "analyzing" && (
-        <>
-          <div className="mb-8 rounded-lg bg-blue-50 p-4 text-blue-800">
-            <div className="flex items-center gap-3">
-              <LoadingSpinner size="sm" />
-              <span>AI is analyzing your idea. This may take a few moments...</span>
-            </div>
+        <div className="mb-8 rounded-lg bg-blue-50 p-4 text-blue-800">
+          <div className="flex items-center gap-3">
+            <LoadingSpinner size="sm" />
+            <span>
+              AI is analyzing your idea. Cards will appear as each section completes...
+            </span>
           </div>
-          <div className="space-y-8">
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-          </div>
-        </>
+        </div>
       )}
 
       {idea.status === "failed" && (
@@ -192,20 +224,33 @@ export const IdeaDetail = () => {
         </div>
       )}
 
-      {idea.status === "completed" && analyses.length > 0 && (
+      {/* Show analysis sections as they complete, even when still analyzing */}
+      {(idea.status === "analyzing" || idea.status === "completed") && (
         <>
           <div className="space-y-8">
-            {getAnalysis("education") && (
+            {/* Education Section */}
+            {isSectionComplete("education") ? (
               <EducationSectionComponent content={getAnalysis("education")!.content} />
-            )}
+            ) : idea.status === "analyzing" ? (
+              <SkeletonCard />
+            ) : null}
 
-            {getAnalysis("swot") && <SwotSection content={getAnalysis("swot")!.content} />}
+            {/* SWOT Section */}
+            {isSectionComplete("swot") ? (
+              <SwotSection content={getAnalysis("swot")!.content} />
+            ) : idea.status === "analyzing" ? (
+              <SkeletonCard />
+            ) : null}
 
-            {getAnalysis("features") && (
+            {/* Features Section */}
+            {isSectionComplete("features") ? (
               <FeaturesSection content={getAnalysis("features")!.content} />
-            )}
+            ) : idea.status === "analyzing" ? (
+              <SkeletonCard />
+            ) : null}
 
-            {getAnalysis("business_values") && (
+            {/* Business Values Section */}
+            {isSectionComplete("business_values") ? (
               <AnalysisSection
                 title="Business Values"
                 description="Core differentiators and strategy"
@@ -255,11 +300,14 @@ export const IdeaDetail = () => {
                   </div>
                 </div>
               </AnalysisSection>
-            )}
+            ) : idea.status === "analyzing" ? (
+              <SkeletonCard />
+            ) : null}
           </div>
 
           <div className="mt-8 grid gap-8 lg:grid-cols-2">
-            {getAnalysis("pmf") && (
+            {/* PMF Section */}
+            {isSectionComplete("pmf") ? (
               <AnalysisSection
                 title="Product-Market Fit Strategies"
                 description="Quick validation approaches"
@@ -288,9 +336,12 @@ export const IdeaDetail = () => {
                   ))}
                 </div>
               </AnalysisSection>
-            )}
+            ) : idea.status === "analyzing" ? (
+              <SkeletonCard />
+            ) : null}
 
-            {getAnalysis("next_steps") && (
+            {/* Next Steps Section */}
+            {isSectionComplete("next_steps") ? (
               <AnalysisSection
                 title="Next Steps"
                 description="Recommended actions to get started"
@@ -315,11 +366,16 @@ export const IdeaDetail = () => {
                     ))}
                 </div>
               </AnalysisSection>
-            )}
+            ) : idea.status === "analyzing" ? (
+              <SkeletonCard />
+            ) : null}
 
-            {getAnalysis("viability") && (
+            {/* Viability Section */}
+            {isSectionComplete("viability") ? (
               <ViabilitySection content={getAnalysis("viability")!.content} />
-            )}
+            ) : idea.status === "analyzing" ? (
+              <SkeletonCard />
+            ) : null}
           </div>
         </>
       )}

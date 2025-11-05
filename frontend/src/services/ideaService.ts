@@ -1,5 +1,6 @@
 import api from "./api";
 import { Idea, Analysis } from "@/types";
+import { config } from "@/config";
 
 export const createIdea = async (data: { title: string; description: string }): Promise<Idea> => {
   const response = await api.post<Idea>("/ideas", data);
@@ -36,4 +37,42 @@ export const analyzeIdea = async (id: string): Promise<{ message: string }> => {
 export const getIdeaAnalyses = async (id: string): Promise<Analysis[]> => {
   const response = await api.get<Analysis[]>(`/ideas/${id}/analyses`);
   return response.data;
+};
+
+export type AnalysisSSEEvent =
+  | { type: "connected" }
+  | { type: "analysis"; data: Analysis }
+  | { type: "completed" }
+  | { type: "error"; message: string };
+
+export const analyzeIdeaStream = (
+  id: string,
+  onMessage: (event: AnalysisSSEEvent) => void,
+  onError?: (error: Error) => void
+): EventSource => {
+  const token = localStorage.getItem("token");
+
+  // EventSource doesn't support custom headers, so we pass token as query param
+  const url = `${config.apiBaseUrl}/ideas/${id}/analyze/stream?token=${encodeURIComponent(token || "")}`;
+
+  const eventSource = new EventSource(url);
+
+  eventSource.onmessage = (event) => {
+    try {
+      const data = JSON.parse(event.data) as AnalysisSSEEvent;
+      onMessage(data);
+    } catch (error) {
+      console.error("Failed to parse SSE message:", error);
+    }
+  };
+
+  eventSource.onerror = (error) => {
+    console.error("SSE error:", error);
+    if (onError) {
+      onError(new Error("Connection error"));
+    }
+    eventSource.close();
+  };
+
+  return eventSource;
 };
