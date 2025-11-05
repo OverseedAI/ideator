@@ -42,7 +42,16 @@ export const FeaturesSection = ({ content }: FeaturesSectionProps) => {
               <tbody>
                 {content.competitiveAnalysis.map((competitor, idx) => (
                   <tr key={idx} className="border-b border-border">
-                    <td className="px-4 py-3 font-medium">{competitor.competitor}</td>
+                    <td className="px-4 py-3 font-medium">
+                      <a
+                        href={competitor.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-800 hover:underline"
+                      >
+                        {competitor.competitor}
+                      </a>
+                    </td>
                     {allFeatures.map((feature, fIdx) => (
                       <td key={fIdx} className="px-4 py-3 text-center">
                         {competitor.features[feature] ? (

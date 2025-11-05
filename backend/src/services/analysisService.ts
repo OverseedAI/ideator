@@ -18,7 +18,13 @@ const generateAnalysis = async (
   const systemPrompt =
     "You are a business analyst helping entrepreneurs evaluate their ideas. Provide thorough, actionable insights.";
 
-  const result = await aiClient.generateStructuredOutput(prompt, schema, systemPrompt);
+  // Use web search for features section to find real competitors
+  if (sectionType === "features") {
+    const result = await aiClient.generateStructuredOutputWithWebSearch(prompt, schema as any, systemPrompt);
+    return result;
+  }
+
+  const result = await aiClient.generateStructuredOutput(prompt, schema as any, systemPrompt);
   return result;
 };
 

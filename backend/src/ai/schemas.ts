@@ -26,11 +26,12 @@ export const featuresSchema = z.object({
   competitiveAnalysis: z
     .array(
       z.object({
-        competitor: z.string(),
+        competitor: z.string().describe("Competitor name"),
+        url: z.string().url().describe("Competitor website URL"),
         features: z.record(z.string(), z.boolean()).describe("Which features the competitor has"),
       })
     )
-    .describe("3-5 key competitors and their feature sets"),
+    .describe("3-5 key competitors and their feature sets with URLs"),
 });
 
 export type FeaturesContent = z.infer<typeof featuresSchema>;
