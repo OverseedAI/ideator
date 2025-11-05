@@ -13,6 +13,7 @@ export const EducationSectionComponent = ({ content }: EducationSectionProps) =>
       title="Product Space Education"
       description="Key terminology and industry overview"
       icon={<GraduationCap size={28} />}
+      defaultCollapsed={true}
     >
       <div className="space-y-6">
         <div>
