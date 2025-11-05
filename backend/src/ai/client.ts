@@ -1,5 +1,5 @@
 import { openai } from "@ai-sdk/openai";
-import { generateText, generateObject } from "ai";
+import { generateText, generateObject, Output, stepCountIs } from "ai";
 import { z } from "zod";
 import { config } from "../config";
 
@@ -15,17 +15,16 @@ export const createAIClient = () => {
           { role: "user" as const, content: prompt },
         ],
         temperature: 0.7,
-        maxTokens: 2000,
       });
 
       return result.text;
     },
 
-    generateStructuredOutput: async <T>(
+    generateStructuredOutput: async (
       prompt: string,
-      schema: z.ZodSchema<T>,
+      schema: z.ZodSchema<any>,
       systemPrompt?: string
-    ): Promise<T> => {
+    ): Promise<any> => {
       const result = await generateObject({
         model,
         schema,
@@ -37,6 +36,28 @@ export const createAIClient = () => {
       });
 
       return result.object;
+    },
+
+    generateStructuredOutputWithWebSearch: async (
+      prompt: string,
+      schema: z.ZodSchema<any>,
+      systemPrompt?: string
+    ): Promise<any> => {
+      const result = await generateText({
+        model,
+        messages: [
+          ...(systemPrompt ? [{ role: "system" as const, content: systemPrompt }] : []),
+          { role: "user" as const, content: prompt },
+        ],
+        temperature: 0.7,
+        tools: {
+          web_search_preview: openai.tools.webSearchPreview({}),
+        },
+        stopWhen: stepCountIs(5), // Allow multi-step tool calling for web search
+        experimental_output: Output.object({ schema }),
+      });
+
+      return result.experimental_output;
     },
   };
 };

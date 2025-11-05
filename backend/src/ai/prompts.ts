@@ -1,13 +1,4 @@
-import {
-  UserProfileData,
-  EducationContent,
-  SwotContent,
-  FeaturesContent,
-  BusinessValuesContent,
-  PmfContent,
-  NextStepsContent,
-  ViabilityContent,
-} from "../types";
+import { UserProfileData } from "../types";
 
 const formatUserContext = (profile?: UserProfileData): string => {
   if (!profile) {
@@ -52,7 +43,7 @@ Please provide:
 export const createSwotPrompt = (
   ideaTitle: string,
   ideaDescription: string,
-  userProfile: UserProfileData
+  userProfile?: UserProfileData
 ): string => {
   return `
 Perform a SWOT analysis for this business idea, personalized to the entrepreneur's profile:
@@ -78,16 +69,24 @@ Analyze this business idea and identify:
 Idea: ${ideaTitle}
 Description: ${ideaDescription}
 
+IMPORTANT: Use web search to find REAL competitors currently operating in this space.
+
 1. Core features this product should have (5-10 features)
-2. Key competitors and their feature sets (3-5 competitors)
-3. A competitive comparison matrix showing which features each competitor has
+2. Search the web for 3-5 REAL competitors that currently exist and operate in this space
+3. For each competitor, provide:
+   - The exact company name
+   - Their official website URL (must be a real, working URL)
+   - Which features from the core feature list they currently have
+4. Create a competitive comparison matrix showing which features each competitor has
+
+Make sure all competitors are real companies with actual websites that you can find through web search.
 `.trim();
 };
 
 export const createBusinessValuesPrompt = (
   ideaTitle: string,
   ideaDescription: string,
-  userProfile: UserProfileData
+  userProfile?: UserProfileData
 ): string => {
   return `
 Identify core business values for this idea:
@@ -126,7 +125,7 @@ Provide 3-5 strategies with:
 export const createNextStepsPrompt = (
   ideaTitle: string,
   ideaDescription: string,
-  userProfile: UserProfileData
+  userProfile?: UserProfileData
 ): string => {
   return `
 Propose concrete next steps to get started developing this product:
@@ -147,7 +146,7 @@ Provide 5-7 prioritized, actionable steps with:
 export const createViabilityPrompt = (
   ideaTitle: string,
   ideaDescription: string,
-  userProfile: UserProfileData
+  userProfile?: UserProfileData
 ): string => {
   return `
 Score the viability of this business idea based on the entrepreneur's profile:
