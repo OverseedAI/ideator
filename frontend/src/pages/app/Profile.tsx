@@ -102,11 +102,6 @@ export const Profile = () => {
     );
   }
 
-  const mutationErrorMessage = getErrorMessage(
-    updateProfileMutation.error,
-    "Failed to update profile"
-  );
-
   return (
     <div>
       <div className="mb-8">
@@ -123,9 +118,9 @@ export const Profile = () => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            {mutationErrorMessage && (
+            {updateProfileMutation.error && (
               <div className="rounded-lg bg-red-50 p-3 text-sm text-red-800">
-                {mutationErrorMessage}
+                {getErrorMessage(updateProfileMutation.error, "Failed to update profile")}
               </div>
             )}
 

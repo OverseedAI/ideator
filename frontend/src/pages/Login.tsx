@@ -9,7 +9,7 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/common/Card";
-import { useAuthRedirect, useLogin } from "@/hooks/queries/useAuth";
+import { useLogin } from "@/hooks/queries/useAuth";
 import { getErrorMessage } from "@/utils/error";
 
 export const Login = () => {
@@ -17,7 +17,6 @@ export const Login = () => {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
   const loginMutation = useLogin();
-  useAuthRedirect({ requireAuth: false, redirectTo: "/app" });
 
   const errorMessage = loginMutation.error
     ? getErrorMessage(loginMutation.error, "Failed to login")
