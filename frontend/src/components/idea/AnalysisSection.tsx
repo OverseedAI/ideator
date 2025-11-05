@@ -12,11 +12,18 @@ interface AnalysisSectionProps {
   description?: string;
   icon?: ReactNode;
   children: ReactNode;
+  fullWidth?: boolean;
 }
 
-export const AnalysisSection = ({ title, description, icon, children }: AnalysisSectionProps) => {
+export const AnalysisSection = ({
+  title,
+  description,
+  icon,
+  children,
+  fullWidth = false,
+}: AnalysisSectionProps) => {
   return (
-    <Card>
+    <Card className={fullWidth ? "col-span-full" : ""}>
       <CardHeader>
         <CardTitle icon={icon}>{title}</CardTitle>
         {description && <CardDescription>{description}</CardDescription>}
