@@ -26,6 +26,7 @@
     "express-async-handler": "^1.2.0",
     "helmet": "^8.0.0",
     "jsonwebtoken": "^9.0.2",
+    "puppeteer": "^24.29.0",
     "zod": "^3.24.1"
   },
   "devDependencies": {

@@ -37,3 +37,13 @@ export const getIdeaAnalyses = async (id: string): Promise<Analysis[]> => {
   const response = await api.get<Analysis[]>(`/ideas/${id}/analyses`);
   return response.data;
 };
+
+export const exportIdeaToPdf = async (id: string): Promise<Blob> => {
+  const response = await api.get(`/ideas/${id}/export/pdf`, {
+    responseType: "blob",
+    headers: {
+      Accept: "application/pdf",
+    },
+  });
+  return response.data;
+};
