@@ -79,12 +79,12 @@ Description: ${ideaDescription}
 
 IMPORTANT: Use web search to find REAL competitors currently operating in this space.
 
-1. Core features this product should have (5-10 features)
+1. Core features this product should have (5-10 features).
 2. Search the web for 3-5 REAL competitors that currently exist and operate in this space
 3. For each competitor, provide:
    - The exact company name
    - Their official website URL (must be a real, working URL)
-   - Which features from the core feature list they currently have
+   - Which features from the core feature list they currently have. Cross reference this with their landing page or their features/services pages.
 4. Create a competitive comparison matrix showing which features each competitor has
 
 Make sure all competitors are real companies with actual websites that you can find through web search.
@@ -147,7 +147,7 @@ Provide 5-7 prioritized, actionable steps with:
 - Title
 - Description
 - Priority (1 being highest)
-- Estimated time
+- Estimated time (be hyper realistic)
 `.trim();
 };
 
@@ -189,7 +189,7 @@ Description: ${ideaDescription}
 IMPORTANT: Use web search to find REAL search data and keyword trends.
 
 Provide a comprehensive keyword analysis:
-1. Identify 10-15 highly relevant search keywords and phrases that potential customers would use
+1. Identify 6-8 highly relevant search keywords and phrases that potential customers would use
 2. For each keyword, provide:
    - Search volume estimate (e.g., "10K-100K/month", "1K-10K/month")
    - Market sentiment (positive/neutral/negative) - how favorable the search intent is for a business
