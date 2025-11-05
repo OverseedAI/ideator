@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Idea, Analysis, AnalysisSectionType } from "@/types";
 import * as ideaService from "@/services/ideaService";
@@ -19,6 +19,17 @@ import { FeaturesSection } from "@/components/idea/FeaturesSection";
 import { ViabilitySection } from "@/components/idea/ViabilitySection";
 import { AnalysisSection } from "@/components/idea/AnalysisSection";
 import { Lightbulb, Target, DollarSign, ListChecks } from "lucide-react";
+import { config } from "@/config";
+
+const sectionOrder: AnalysisSectionType[] = [
+  "education",
+  "swot",
+  "features",
+  "business_values",
+  "pmf",
+  "next_steps",
+  "viability",
+];
 
 export const IdeaDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -28,9 +39,10 @@ export const IdeaDetail = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
-  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const streamControllerRef = useRef<AbortController | null>(null);
+  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const loadIdea = async () => {
+  const loadIdea = useCallback(async () => {
     if (!id) return;
 
     try {
@@ -47,7 +59,7 @@ export const IdeaDetail = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
     // Reset state when id changes
@@ -55,34 +67,182 @@ export const IdeaDetail = () => {
     setAnalyses([]);
     setError("");
     loadIdea();
+  }, [id, loadIdea]);
 
-    // Set up polling for analyzing status
-    return () => {
-      if (pollIntervalRef.current) {
-        clearInterval(pollIntervalRef.current);
-      }
-    };
-  }, [id]);
+  const ideaStatus = idea?.status;
 
-  // Poll for updates when analyzing
   useEffect(() => {
-    if (idea?.status === "analyzing") {
-      pollIntervalRef.current = setInterval(() => {
-        loadIdea();
-      }, 3000); // Poll every 3 seconds
-    } else {
-      if (pollIntervalRef.current) {
-        clearInterval(pollIntervalRef.current);
-        pollIntervalRef.current = null;
-      }
+    if (!id || !ideaStatus) {
+      return;
     }
 
+    const shouldStream = ["pending", "analyzing"].includes(ideaStatus);
+
+    if (shouldStream) {
+      if (streamControllerRef.current) {
+        return;
+      }
+
+      const token = localStorage.getItem("token");
+      if (!token) {
+        return;
+      }
+
+      const controller = new AbortController();
+      streamControllerRef.current = controller;
+
+      const clearReconnectTimeout = () => {
+        if (reconnectTimeoutRef.current) {
+          clearTimeout(reconnectTimeoutRef.current);
+          reconnectTimeoutRef.current = null;
+        }
+      };
+
+      const handleEvent = (event: string, payload: unknown) => {
+        if (event === "analysis") {
+          if (!payload || typeof payload !== "object") {
+            return;
+          }
+          const analysis = payload as Analysis;
+          setAnalyses((prev) => {
+            const existingIndex = prev.findIndex(
+              (item) => item.sectionType === analysis.sectionType
+            );
+            const updated = [...prev];
+            if (existingIndex !== -1) {
+              updated[existingIndex] = analysis;
+            } else {
+              updated.push(analysis);
+            }
+            return updated.sort(
+              (a, b) =>
+                sectionOrder.indexOf(a.sectionType) - sectionOrder.indexOf(b.sectionType)
+            );
+          });
+        } else if (event === "ideaStatus") {
+          if (!payload || typeof payload !== "object" || !("status" in payload)) {
+            return;
+          }
+          const { status } = payload as { status: Idea["status"] };
+          setIdea((prev) => (prev ? { ...prev, status } : prev));
+        }
+      };
+
+      const scheduleReconnect = () => {
+        if (controller.signal.aborted || reconnectTimeoutRef.current) {
+          return;
+        }
+        reconnectTimeoutRef.current = setTimeout(() => {
+          reconnectTimeoutRef.current = null;
+          connect();
+        }, 2000);
+      };
+
+      const connect = async () => {
+        try {
+          const response = await fetch(`${config.apiBaseUrl}/ideas/${id}/analyses/stream`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            signal: controller.signal,
+          });
+
+          if (!response.ok || !response.body) {
+            throw new Error("Failed to establish analysis stream");
+          }
+
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder("utf-8");
+          let buffer = "";
+
+          while (!controller.signal.aborted) {
+            const { value, done } = await reader.read();
+            if (done) {
+              break;
+            }
+
+            buffer += decoder.decode(value, { stream: true });
+
+            let boundary = buffer.indexOf("\n\n");
+            while (boundary !== -1) {
+              const rawEvent = buffer.slice(0, boundary);
+              buffer = buffer.slice(boundary + 2);
+
+              const trimmed = rawEvent.trim();
+              if (trimmed && !trimmed.startsWith(":")) {
+                const lines = trimmed.split("\n");
+                let eventName = "message";
+                let dataPayload = "";
+
+                for (const line of lines) {
+                  if (line.startsWith("event:")) {
+                    eventName = line.slice(6).trim();
+                  } else if (line.startsWith("data:")) {
+                    const dataLine = line.slice(5).trim();
+                    dataPayload = dataPayload
+                      ? `${dataPayload}\n${dataLine}`
+                      : dataLine;
+                  }
+                }
+
+                if (dataPayload) {
+                  try {
+                    const parsed = JSON.parse(dataPayload);
+                    handleEvent(eventName, parsed);
+                  } catch (err) {
+                    console.error("Failed to parse analysis stream payload", err);
+                  }
+                }
+              }
+
+              boundary = buffer.indexOf("\n\n");
+            }
+          }
+
+          if (!controller.signal.aborted) {
+            scheduleReconnect();
+          }
+        } catch (err) {
+          if (!controller.signal.aborted) {
+            console.error("Analysis stream connection error", err);
+            scheduleReconnect();
+          }
+        }
+      };
+
+      connect();
+
+      return () => {
+        clearReconnectTimeout();
+        if (!controller.signal.aborted) {
+          controller.abort();
+        }
+        streamControllerRef.current = null;
+      };
+    }
+
+    if (streamControllerRef.current) {
+      if (!streamControllerRef.current.signal.aborted) {
+        streamControllerRef.current.abort();
+      }
+      streamControllerRef.current = null;
+    }
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = null;
+    }
+  }, [id, ideaStatus]);
+
+  useEffect(() => {
     return () => {
-      if (pollIntervalRef.current) {
-        clearInterval(pollIntervalRef.current);
+      if (streamControllerRef.current && !streamControllerRef.current.signal.aborted) {
+        streamControllerRef.current.abort();
+      }
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
       }
     };
-  }, [idea?.status]);
+  }, []);
 
   const getAnalysis = (type: AnalysisSectionType) => {
     return analyses.find((a) => a.sectionType === type);
@@ -133,6 +293,8 @@ export const IdeaDetail = () => {
     failed: "error",
   };
 
+  const isAnalysisInProgress = ideaStatus === "pending" || ideaStatus === "analyzing";
+
   return (
     <div>
       <div className="mb-8 flex items-center justify-between">
@@ -166,22 +328,13 @@ export const IdeaDetail = () => {
         </CardContent>
       </Card>
 
-      {idea.status === "analyzing" && (
+      {isAnalysisInProgress && (
         <>
           <div className="mb-8 rounded-lg bg-blue-50 p-4 text-blue-800">
             <div className="flex items-center gap-3">
               <LoadingSpinner size="sm" />
               <span>AI is analyzing your idea. This may take a few moments...</span>
             </div>
-          </div>
-          <div className="space-y-8">
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
-            <SkeletonCard />
           </div>
         </>
       )}
@@ -192,20 +345,28 @@ export const IdeaDetail = () => {
         </div>
       )}
 
-      {idea.status === "completed" && analyses.length > 0 && (
+      {(analyses.length > 0 || isAnalysisInProgress) && (
         <>
           <div className="space-y-8">
-            {getAnalysis("education") && (
+            {getAnalysis("education") ? (
               <EducationSectionComponent content={getAnalysis("education")!.content} />
+            ) : (
+              isAnalysisInProgress && <SkeletonCard />
             )}
 
-            {getAnalysis("swot") && <SwotSection content={getAnalysis("swot")!.content} />}
+            {getAnalysis("swot") ? (
+              <SwotSection content={getAnalysis("swot")!.content} />
+            ) : (
+              isAnalysisInProgress && <SkeletonCard />
+            )}
 
-            {getAnalysis("features") && (
+            {getAnalysis("features") ? (
               <FeaturesSection content={getAnalysis("features")!.content} />
+            ) : (
+              isAnalysisInProgress && <SkeletonCard />
             )}
 
-            {getAnalysis("business_values") && (
+            {getAnalysis("business_values") ? (
               <AnalysisSection
                 title="Business Values"
                 description="Core differentiators and strategy"
@@ -255,11 +416,13 @@ export const IdeaDetail = () => {
                   </div>
                 </div>
               </AnalysisSection>
+            ) : (
+              isAnalysisInProgress && <SkeletonCard />
             )}
           </div>
 
           <div className="mt-8 grid gap-8 lg:grid-cols-2">
-            {getAnalysis("pmf") && (
+            {getAnalysis("pmf") ? (
               <AnalysisSection
                 title="Product-Market Fit Strategies"
                 description="Quick validation approaches"
@@ -288,9 +451,11 @@ export const IdeaDetail = () => {
                   ))}
                 </div>
               </AnalysisSection>
+            ) : (
+              isAnalysisInProgress && <SkeletonCard />
             )}
 
-            {getAnalysis("next_steps") && (
+            {getAnalysis("next_steps") ? (
               <AnalysisSection
                 title="Next Steps"
                 description="Recommended actions to get started"
@@ -315,10 +480,14 @@ export const IdeaDetail = () => {
                     ))}
                 </div>
               </AnalysisSection>
+            ) : (
+              isAnalysisInProgress && <SkeletonCard />
             )}
 
-            {getAnalysis("viability") && (
+            {getAnalysis("viability") ? (
               <ViabilitySection content={getAnalysis("viability")!.content} />
+            ) : (
+              isAnalysisInProgress && <SkeletonCard />
             )}
           </div>
         </>

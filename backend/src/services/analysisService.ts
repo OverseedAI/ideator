@@ -1,9 +1,45 @@
+import { EventEmitter } from "events";
 import { prisma } from "../db";
 import { AppError } from "../middleware/errorHandler";
 import { aiClient } from "../ai/client";
 import { analysisPrompts } from "../ai/prompts";
 import { analysisSchemas } from "../ai/schemas";
 import { AnalysisSectionType, UserProfileData } from "../types";
+
+type IdeaStatus = "pending" | "analyzing" | "completed" | "failed";
+
+export interface AnalysisSectionEvent {
+  ideaId: string;
+  analysis: Awaited<ReturnType<typeof prisma.analysis.create>>;
+}
+
+export interface AnalysisStatusEvent {
+  ideaId: string;
+  status: IdeaStatus;
+}
+
+class AnalysisEventEmitter extends EventEmitter {
+  emit(event: "analysis-section", payload: AnalysisSectionEvent): boolean;
+  emit(event: "analysis-status", payload: AnalysisStatusEvent): boolean;
+  emit(event: string, payload: unknown): boolean {
+    return super.emit(event, payload);
+  }
+
+  on(event: "analysis-section", listener: (payload: AnalysisSectionEvent) => void): this;
+  on(event: "analysis-status", listener: (payload: AnalysisStatusEvent) => void): this;
+  on(event: string, listener: (...args: unknown[]) => void): this {
+    return super.on(event, listener);
+  }
+
+  off(event: "analysis-section", listener: (payload: AnalysisSectionEvent) => void): this;
+  off(event: "analysis-status", listener: (payload: AnalysisStatusEvent) => void): this;
+  off(event: string, listener: (...args: unknown[]) => void): this {
+    return super.off(event, listener);
+  }
+}
+
+export const analysisEvents = new AnalysisEventEmitter();
+analysisEvents.setMaxListeners(0);
 
 const generateAnalysis = async (
   sectionType: AnalysisSectionType,
@@ -58,6 +94,8 @@ export const analyzeIdea = async (ideaId: string, userId: string) => {
     data: { status: "analyzing" },
   });
 
+  analysisEvents.emit("analysis-status", { ideaId, status: "analyzing" });
+
   try {
     // Generate all analyses
     const sections: AnalysisSectionType[] = [
@@ -78,13 +116,15 @@ export const analyzeIdea = async (ideaId: string, userId: string) => {
         userProfile || undefined
       );
 
-      await prisma.analysis.create({
+      const analysis = await prisma.analysis.create({
         data: {
           ideaId,
           sectionType,
           content: content as any,
         },
       });
+
+      analysisEvents.emit("analysis-section", { ideaId, analysis });
     }
 
     // Update status to completed
@@ -93,6 +133,8 @@ export const analyzeIdea = async (ideaId: string, userId: string) => {
       data: { status: "completed" },
     });
 
+    analysisEvents.emit("analysis-status", { ideaId, status: "completed" });
+
     return { message: "Analysis completed successfully" };
   } catch (error) {
     // Update status to failed
@@ -100,6 +142,8 @@ export const analyzeIdea = async (ideaId: string, userId: string) => {
       where: { id: ideaId },
       data: { status: "failed" },
     });
+
+    analysisEvents.emit("analysis-status", { ideaId, status: "failed" });
 
     throw error;
   }

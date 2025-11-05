@@ -19,4 +19,11 @@ router.get(
   analysisController.getAnalyses
 );
 
+router.get(
+  "/:id/analyses/stream",
+  authenticate,
+  validate(analysisController.ideaIdSchema),
+  analysisController.streamAnalyses
+);
+
 export default router;
