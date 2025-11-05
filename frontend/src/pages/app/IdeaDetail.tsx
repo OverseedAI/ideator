@@ -151,7 +151,7 @@ export const IdeaDetail = () => {
         <div className="flex gap-3">
           {idea?.status === "completed" && (
             <Button
-              variant="outline"
+              variant="secondary"
               onClick={handleExportPdf}
               isLoading={isExportingPdf}
               disabled={isExportingPdf}
