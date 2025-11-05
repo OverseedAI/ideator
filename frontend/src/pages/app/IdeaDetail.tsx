@@ -69,12 +69,16 @@ export const IdeaDetail = () => {
     loadIdea();
   }, [id, loadIdea]);
 
+  const ideaStatus = idea?.status;
+
   useEffect(() => {
-    if (!id) {
+    if (!id || !ideaStatus) {
       return;
     }
 
-    if (idea?.status === "analyzing") {
+    const shouldStream = ["pending", "analyzing"].includes(ideaStatus);
+
+    if (shouldStream) {
       if (streamControllerRef.current) {
         return;
       }
@@ -227,7 +231,7 @@ export const IdeaDetail = () => {
       clearTimeout(reconnectTimeoutRef.current);
       reconnectTimeoutRef.current = null;
     }
-  }, [id, idea?.status]);
+  }, [id, ideaStatus]);
 
   useEffect(() => {
     return () => {
@@ -289,6 +293,8 @@ export const IdeaDetail = () => {
     failed: "error",
   };
 
+  const isAnalysisInProgress = ideaStatus === "pending" || ideaStatus === "analyzing";
+
   return (
     <div>
       <div className="mb-8 flex items-center justify-between">
@@ -322,7 +328,7 @@ export const IdeaDetail = () => {
         </CardContent>
       </Card>
 
-      {idea.status === "analyzing" && (
+      {isAnalysisInProgress && (
         <>
           <div className="mb-8 rounded-lg bg-blue-50 p-4 text-blue-800">
             <div className="flex items-center gap-3">
@@ -339,25 +345,25 @@ export const IdeaDetail = () => {
         </div>
       )}
 
-      {(analyses.length > 0 || idea.status === "analyzing") && (
+      {(analyses.length > 0 || isAnalysisInProgress) && (
         <>
           <div className="space-y-8">
             {getAnalysis("education") ? (
               <EducationSectionComponent content={getAnalysis("education")!.content} />
             ) : (
-              idea.status === "analyzing" && <SkeletonCard />
+              isAnalysisInProgress && <SkeletonCard />
             )}
 
             {getAnalysis("swot") ? (
               <SwotSection content={getAnalysis("swot")!.content} />
             ) : (
-              idea.status === "analyzing" && <SkeletonCard />
+              isAnalysisInProgress && <SkeletonCard />
             )}
 
             {getAnalysis("features") ? (
               <FeaturesSection content={getAnalysis("features")!.content} />
             ) : (
-              idea.status === "analyzing" && <SkeletonCard />
+              isAnalysisInProgress && <SkeletonCard />
             )}
 
             {getAnalysis("business_values") ? (
@@ -411,7 +417,7 @@ export const IdeaDetail = () => {
                 </div>
               </AnalysisSection>
             ) : (
-              idea.status === "analyzing" && <SkeletonCard />
+              isAnalysisInProgress && <SkeletonCard />
             )}
           </div>
 
@@ -446,7 +452,7 @@ export const IdeaDetail = () => {
                 </div>
               </AnalysisSection>
             ) : (
-              idea.status === "analyzing" && <SkeletonCard />
+              isAnalysisInProgress && <SkeletonCard />
             )}
 
             {getAnalysis("next_steps") ? (
@@ -475,13 +481,13 @@ export const IdeaDetail = () => {
                 </div>
               </AnalysisSection>
             ) : (
-              idea.status === "analyzing" && <SkeletonCard />
+              isAnalysisInProgress && <SkeletonCard />
             )}
 
             {getAnalysis("viability") ? (
               <ViabilitySection content={getAnalysis("viability")!.content} />
             ) : (
-              idea.status === "analyzing" && <SkeletonCard />
+              isAnalysisInProgress && <SkeletonCard />
             )}
           </div>
         </>
