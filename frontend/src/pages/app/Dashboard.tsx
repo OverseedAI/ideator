@@ -1,44 +1,39 @@
-import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Idea } from "@/types";
-import * as ideaService from "@/services/ideaService";
+import { AxiosError } from "axios";
 import { Button } from "@/components/common/Button";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { IdeaCard } from "@/components/dashboard/IdeaCard";
 import { EmptyState } from "@/components/dashboard/EmptyState";
+import { useDeleteIdea, useIdeas } from "@/hooks/queries/useIdeas";
 
 export const Dashboard = () => {
-  const [ideas, setIdeas] = useState<Idea[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
   const navigate = useNavigate();
+  const { data: ideas, isLoading, isError, error } = useIdeas();
+  const deleteIdea = useDeleteIdea();
 
-  const loadIdeas = async () => {
-    try {
-      setIsLoading(true);
-      const data = await ideaService.getUserIdeas();
-      setIdeas(data);
-    } catch (err: any) {
-      setError(err.response?.data?.error || "Failed to load ideas");
-    } finally {
-      setIsLoading(false);
+  const getErrorMessage = (err: unknown, fallback: string) => {
+    if (!err) return "";
+    if (err instanceof AxiosError) {
+      return (err.response?.data as { error?: string })?.error ?? fallback;
     }
+    if (err instanceof Error) {
+      return err.message;
+    }
+    return fallback;
   };
 
-  useEffect(() => {
-    loadIdeas();
-  }, []);
+  const listErrorMessage = getErrorMessage(error, "Failed to load ideas");
+  const deleteErrorMessage = getErrorMessage(deleteIdea.error, "Failed to delete idea");
+  const displayedError = deleteErrorMessage || listErrorMessage;
 
-  const handleDelete = async (id: string) => {
-    try {
-      await ideaService.deleteIdea(id);
-      setIdeas(ideas.filter((idea) => idea.id !== id));
-    } catch (err: any) {
-      alert(err.response?.data?.error || "Failed to delete idea");
+  const handleDelete = (id: string) => {
+    if (!confirm("Are you sure you want to delete this idea?")) {
+      return;
     }
+    deleteIdea.mutate(id);
   };
 
-  if (isLoading) {
+  if (isLoading && !ideas) {
     return (
       <div className="flex h-96 items-center justify-center">
         <LoadingSpinner size="lg" />
@@ -56,17 +51,21 @@ export const Dashboard = () => {
         <Button onClick={() => navigate("/app/ideas/new")}>New Idea</Button>
       </div>
 
-      {error && <div className="mb-6 rounded-lg bg-red-50 p-4 text-red-800">{error}</div>}
+        {(isError || deleteIdea.isError) && (
+          <div className="mb-6 rounded-lg bg-red-50 p-4 text-red-800">
+            {displayedError || "Something went wrong"}
+          </div>
+        )}
 
-      {ideas.length === 0 ? (
-        <EmptyState />
-      ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {ideas.map((idea) => (
-            <IdeaCard key={idea.id} idea={idea} onDelete={handleDelete} />
-          ))}
-        </div>
-      )}
+        {(ideas ?? []).length === 0 ? (
+          <EmptyState />
+        ) : (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {(ideas ?? []).map((idea) => (
+              <IdeaCard key={idea.id} idea={idea} onDelete={handleDelete} />
+            ))}
+          </div>
+        )}
     </div>
   );
 };

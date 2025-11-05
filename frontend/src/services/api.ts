@@ -1,5 +1,7 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { config } from "@/config";
+import { authStorage } from "@/lib/authStorage";
+import { authEvents } from "@/lib/authEvents";
 
 const api = axios.create({
   baseURL: config.apiBaseUrl,
@@ -11,7 +13,7 @@ const api = axios.create({
 // Request interceptor to add auth token
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = localStorage.getItem("token");
+    const token = authStorage.getToken();
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -27,10 +29,8 @@ api.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
     if (error.response?.status === 401) {
-      // Clear token and redirect to login
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      window.location.href = "/login";
+      authStorage.clearToken();
+      authEvents.emitUnauthorized();
     }
     return Promise.reject(error);
   }

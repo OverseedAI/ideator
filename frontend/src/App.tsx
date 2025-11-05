@@ -1,5 +1,4 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "./hooks/useAuth";
 import { AppLayout } from "./components/layout/AppLayout";
 import { Login } from "./pages/Login";
 import { Signup } from "./pages/Signup";
@@ -12,61 +11,26 @@ import { Settings } from "./pages/app/Settings";
 function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <Routes>
-          {/* Public routes */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
+      <Routes>
+        {/* Public routes */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
 
-          {/* Protected routes */}
-          <Route
-            path="/app"
-            element={
-              <AppLayout>
-                <Dashboard />
-              </AppLayout>
-            }
-          />
-          <Route
-            path="/app/ideas/new"
-            element={
-              <AppLayout>
-                <NewIdea />
-              </AppLayout>
-            }
-          />
-          <Route
-            path="/app/ideas/:id"
-            element={
-              <AppLayout>
-                <IdeaDetail />
-              </AppLayout>
-            }
-          />
-          <Route
-            path="/app/profile"
-            element={
-              <AppLayout>
-                <Profile />
-              </AppLayout>
-            }
-          />
-          <Route
-            path="/app/settings"
-            element={
-              <AppLayout>
-                <Settings />
-              </AppLayout>
-            }
-          />
+        {/* Protected routes */}
+        <Route path="/app" element={<AppLayout />}>
+          <Route index element={<Dashboard />} />
+          <Route path="ideas/new" element={<NewIdea />} />
+          <Route path="ideas/:id" element={<IdeaDetail />} />
+          <Route path="profile" element={<Profile />} />
+          <Route path="settings" element={<Settings />} />
+        </Route>
 
-          {/* Redirect root to app */}
-          <Route path="/" element={<Navigate to="/app" replace />} />
+        {/* Redirect root to app */}
+        <Route path="/" element={<Navigate to="/app" replace />} />
 
-          {/* Catch all - redirect to app */}
-          <Route path="*" element={<Navigate to="/app" replace />} />
-        </Routes>
-      </AuthProvider>
+        {/* Catch all - redirect to app */}
+        <Route path="*" element={<Navigate to="/app" replace />} />
+      </Routes>
     </BrowserRouter>
   );
 }

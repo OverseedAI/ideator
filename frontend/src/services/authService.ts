@@ -1,5 +1,6 @@
 import api from "./api";
 import { AuthResponse, User } from "@/types";
+import { authStorage } from "@/lib/authStorage";
 
 export const signup = async (data: {
   email: string;
@@ -21,7 +22,7 @@ export const getMe = async (): Promise<User> => {
 };
 
 export const setAuthToken = (token: string) => {
-  localStorage.setItem("token", token);
+  authStorage.setToken(token);
 };
 
 export const setUser = (user: User) => {
@@ -34,10 +35,10 @@ export const getStoredUser = (): User | null => {
 };
 
 export const getStoredToken = (): string | null => {
-  return localStorage.getItem("token");
+  return authStorage.getToken();
 };
 
 export const clearAuth = () => {
-  localStorage.removeItem("token");
+  authStorage.clearToken();
   localStorage.removeItem("user");
 };
