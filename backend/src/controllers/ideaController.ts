@@ -1,5 +1,6 @@
 import { Response } from "express";
 import { z } from "zod";
+import { createReadStream } from "fs";
 import { AuthRequest } from "../types";
 import { asyncHandler } from "../utils/asyncHandler";
 import * as ideaService from "../services/ideaService";
@@ -75,14 +76,16 @@ export const exportPdf = asyncHandler(async (req: AuthRequest, res: Response): P
   const userId = req.user!.userId;
   const { id } = req.params;
 
-  const pdfBuffer = await pdfService.generatePdfForIdea(id, userId);
+  const pdfPath = await pdfService.generatePdfForIdea(id, userId);
 
   // Set headers for PDF download
-  res.setHeader("Content-Type", "application/pdf");
+  res.contentType("application/pdf");
   res.setHeader("Content-Disposition", `attachment; filename="idea-analysis-${id}.pdf"`);
-  res.setHeader("Content-Length", pdfBuffer.length);
+  res.setHeader("Cache-Control", "no-cache");
 
-  res.send(pdfBuffer);
+  // Stream file from disk
+  const fileStream = createReadStream(pdfPath);
+  fileStream.pipe(res);
 });
 
 export { createIdeaSchema, updateIdeaSchema, ideaIdSchema };

@@ -771,8 +771,8 @@ function generatePdfHtml(idea: Idea, analyses: Analysis[]): string {
   `;
 }
 
-// Generate PDF for an idea
-export async function generatePdfForIdea(ideaId: string, userId: string): Promise<Buffer> {
+// Generate PDF for an idea and return the file path
+export async function generatePdfForIdea(ideaId: string, userId: string): Promise<string> {
   // Get idea with ownership verification
   const idea = await prisma.idea.findFirst({
     where: {
@@ -804,9 +804,8 @@ export async function generatePdfForIdea(ideaId: string, userId: string): Promis
   const shouldRegenerate = await shouldRegeneratePdf(idea, analyses);
 
   if (!shouldRegenerate && idea.pdfPath) {
-    // Return cached PDF
-    const pdfBuffer = await fs.readFile(idea.pdfPath);
-    return pdfBuffer;
+    // Return cached PDF path
+    return idea.pdfPath;
   }
 
   // Generate new PDF
@@ -826,7 +825,7 @@ export async function generatePdfForIdea(ideaId: string, userId: string): Promis
     // Set content and generate PDF
     await page.setContent(html, { waitUntil: "networkidle0" });
 
-    const pdfBuffer = await page.pdf({
+    const pdfData = await page.pdf({
       format: "A4",
       printBackground: true,
       margin: {
@@ -836,6 +835,9 @@ export async function generatePdfForIdea(ideaId: string, userId: string): Promis
         left: "2cm",
       },
     });
+
+    // Ensure we have a proper Node.js Buffer
+    const pdfBuffer = Buffer.from(pdfData);
 
     // Save PDF to file system
     const userDir = await ensureExportsDir(userId);
@@ -852,7 +854,7 @@ export async function generatePdfForIdea(ideaId: string, userId: string): Promis
       },
     });
 
-    return pdfBuffer;
+    return pdfPath;
   } finally {
     if (browser) {
       await browser.close();
