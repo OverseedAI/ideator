@@ -1,10 +1,13 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
-import { useCurrentUser } from "@/hooks/queries/useAuth";
+import { useCurrentUser, useAuthRedirect } from "@/hooks/queries/useAuth";
 
 export const AppLayout = () => {
   const { user, isLoading, hasToken, error, isError } = useCurrentUser();
+
+  // Listen for 401 unauthorized events globally
+  useAuthRedirect();
 
   if (isLoading && hasToken) {
     return (
