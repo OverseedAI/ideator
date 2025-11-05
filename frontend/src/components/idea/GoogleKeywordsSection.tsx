@@ -78,8 +78,16 @@ export const GoogleKeywordsSection = ({ content }: GoogleKeywordsSectionProps) =
       return;
     }
 
-    // Clear container
-    chartContainerRef.current.innerHTML = "";
+    // Clear container first
+    const container = chartContainerRef.current;
+    container.innerHTML = "";
+
+    // Create a wrapper div for the trends widget
+    const widgetWrapper = document.createElement("div");
+    widgetWrapper.style.width = "100%";
+    widgetWrapper.style.height = "450px";
+    widgetWrapper.style.position = "relative";
+    container.appendChild(widgetWrapper);
 
     // Prepare comparison items for top keywords
     const comparisonItems = topKeywords.map((keyword) => ({
@@ -92,23 +100,36 @@ export const GoogleKeywordsSection = ({ content }: GoogleKeywordsSectionProps) =
     const queryParams = topKeywords.map((k) => k.term).join(",");
     const exploreQuery = `date=today%2012-m&geo=US&q=${encodeURIComponent(queryParams)}&hl=en`;
 
-    try {
-      // Render Google Trends widget
-      window.trends.embed.renderExploreWidget(
-        "TIMESERIES",
-        {
-          comparisonItem: comparisonItems,
-          category: 0,
-          property: "",
-        },
-        {
-          exploreQuery,
-          guestPath: "https://trends.google.com:443/trends/embed/",
-        }
-      );
-    } catch (error) {
-      console.error("Failed to render Google Trends widget:", error);
-    }
+    // Small delay to ensure DOM is ready
+    setTimeout(() => {
+      try {
+        // Render Google Trends widget into the wrapper
+        window.trends!.embed.renderExploreWidget(
+          "TIMESERIES",
+          {
+            comparisonItem: comparisonItems,
+            category: 0,
+            property: "",
+          },
+          {
+            exploreQuery,
+            guestPath: "https://trends.google.com:443/trends/embed/",
+          }
+        );
+
+        // Apply containment styles to the generated iframe
+        setTimeout(() => {
+          const iframe = widgetWrapper.querySelector("iframe");
+          if (iframe) {
+            iframe.style.width = "100%";
+            iframe.style.height = "450px";
+            iframe.style.border = "none";
+          }
+        }, 100);
+      } catch (error) {
+        console.error("Failed to render Google Trends widget:", error);
+      }
+    }, 50);
   }, [scriptLoaded, topKeywords]);
 
   return (
@@ -127,15 +148,18 @@ export const GoogleKeywordsSection = ({ content }: GoogleKeywordsSectionProps) =
         {/* Google Trends Chart */}
         <div>
           <h4 className="mb-4 text-lg font-semibold">Search Trends (Last 12 Months)</h4>
-          <div
-            ref={chartContainerRef}
-            className="min-h-[400px] w-full overflow-hidden rounded-lg border border-border bg-white"
-          >
-            {!scriptLoaded && (
-              <div className="flex h-[400px] items-center justify-center">
-                <div className="text-text-secondary">Loading Google Trends chart...</div>
-              </div>
-            )}
+          <div className="relative w-full overflow-hidden rounded-lg border border-border bg-white">
+            <div
+              ref={chartContainerRef}
+              className="relative h-[450px] w-full"
+              style={{ maxWidth: "100%", isolation: "isolate" }}
+            >
+              {!scriptLoaded && (
+                <div className="flex h-full items-center justify-center">
+                  <div className="text-text-secondary">Loading Google Trends chart...</div>
+                </div>
+              )}
+            </div>
           </div>
           <div className="mt-3 text-sm text-text-secondary">
             Showing top {topKeywords.length} keywords by relevance
