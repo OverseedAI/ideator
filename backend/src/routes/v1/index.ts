@@ -1,10 +1,10 @@
-import { Router } from "express";
+import { Router, type Router as RouterType } from "express";
 import authRoutes from "./authRoutes";
 import profileRoutes from "./profileRoutes";
 import ideaRoutes from "./ideaRoutes";
 import analysisRoutes from "./analysisRoutes";
 
-const router = Router();
+const router: RouterType = Router();
 
 router.use("/auth", authRoutes);
 router.use("/profile", profileRoutes);

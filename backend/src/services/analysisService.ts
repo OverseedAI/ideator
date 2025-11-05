@@ -19,21 +19,21 @@ export interface AnalysisStatusEvent {
 }
 
 class AnalysisEventEmitter extends EventEmitter {
-  emit(event: "analysis-section", payload: AnalysisSectionEvent): boolean;
-  emit(event: "analysis-status", payload: AnalysisStatusEvent): boolean;
-  emit(event: string, payload: unknown): boolean {
-    return super.emit(event, payload);
+  override emit(event: "analysis-section", payload: AnalysisSectionEvent): boolean;
+  override emit(event: "analysis-status", payload: AnalysisStatusEvent): boolean;
+  override emit(event: string | symbol, ...args: any[]): boolean {
+    return super.emit(event, ...args);
   }
 
-  on(event: "analysis-section", listener: (payload: AnalysisSectionEvent) => void): this;
-  on(event: "analysis-status", listener: (payload: AnalysisStatusEvent) => void): this;
-  on(event: string, listener: (...args: unknown[]) => void): this {
+  override on(event: "analysis-section", listener: (payload: AnalysisSectionEvent) => void): this;
+  override on(event: "analysis-status", listener: (payload: AnalysisStatusEvent) => void): this;
+  override on(event: string | symbol, listener: (...args: any[]) => void): this {
     return super.on(event, listener);
   }
 
-  off(event: "analysis-section", listener: (payload: AnalysisSectionEvent) => void): this;
-  off(event: "analysis-status", listener: (payload: AnalysisStatusEvent) => void): this;
-  off(event: string, listener: (...args: unknown[]) => void): this {
+  override off(event: "analysis-section", listener: (payload: AnalysisSectionEvent) => void): this;
+  override off(event: "analysis-status", listener: (payload: AnalysisStatusEvent) => void): this;
+  override off(event: string | symbol, listener: (...args: any[]) => void): this {
     return super.off(event, listener);
   }
 }
