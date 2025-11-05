@@ -24,13 +24,16 @@ model User {
 }
 
 model Idea {
-  id          String   @id @default(uuid())
-  userId      String   @map("user_id")
-  title       String
-  description String   @db.Text
-  status      String   @default("pending") // pending, analyzing, completed, failed
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id             String    @id @default(uuid())
+  userId         String    @map("user_id")
+  title          String
+  description    String    @db.Text
+  status         String    @default("pending") // pending, analyzing, completed, failed
+  pdfPath        String?   @map("pdf_path") // File path for cached PDF
+  pdfGeneratedAt DateTime? @map("pdf_generated_at") // When PDF was generated
+  pdfVersion     Int       @default(1) @map("pdf_version") // Version for cache invalidation
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
 
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   analyses    Analysis[]

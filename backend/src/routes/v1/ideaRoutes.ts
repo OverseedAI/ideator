@@ -31,4 +31,11 @@ router.delete(
   ideaController.deleteIdea
 );
 
+router.get(
+  "/:id/export/pdf",
+  authenticate,
+  validate(ideaController.ideaIdSchema),
+  ideaController.exportPdf
+);
+
 export default router;

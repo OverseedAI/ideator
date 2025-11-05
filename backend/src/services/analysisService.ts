@@ -2,7 +2,7 @@ import { EventEmitter } from "events";
 import { prisma } from "../db";
 import { AppError } from "../middleware/errorHandler";
 import { aiClient } from "../ai/client";
-import { analysisPrompts } from "../ai/prompts";
+import { analysisPrompts, IDEA_ANALYSIS_SYSTEM_PROMPT } from "../ai/prompts";
 import { analysisSchemas } from "../ai/schemas";
 import { AnalysisSectionType, UserProfileData } from "../types";
 
@@ -51,16 +51,13 @@ const generateAnalysis = async (
   const prompt = promptFn(ideaTitle, ideaDescription, userProfile);
   const schema = analysisSchemas[sectionType];
 
-  const systemPrompt =
-    "You are a business analyst helping entrepreneurs evaluate their ideas. Provide thorough, actionable insights.";
-
   // Use web search for features and google_keywords sections to find real data
   if (sectionType === "features" || sectionType === "google_keywords") {
-    const result = await aiClient.generateStructuredOutputWithWebSearch(prompt, schema as any, systemPrompt);
+    const result = await aiClient.generateStructuredOutputWithWebSearch(prompt, schema as any, IDEA_ANALYSIS_SYSTEM_PROMPT);
     return result;
   }
 
-  const result = await aiClient.generateStructuredOutput(prompt, schema as any, systemPrompt);
+  const result = await aiClient.generateStructuredOutput(prompt, schema as any, IDEA_ANALYSIS_SYSTEM_PROMPT);
   return result;
 };
 
