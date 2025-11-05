@@ -54,8 +54,8 @@ const generateAnalysis = async (
   const systemPrompt =
     "You are a business analyst helping entrepreneurs evaluate their ideas. Provide thorough, actionable insights.";
 
-  // Use web search for features section to find real competitors
-  if (sectionType === "features") {
+  // Use web search for features and google_keywords sections to find real data
+  if (sectionType === "features" || sectionType === "google_keywords") {
     const result = await aiClient.generateStructuredOutputWithWebSearch(prompt, schema as any, systemPrompt);
     return result;
   }
@@ -106,6 +106,7 @@ export const analyzeIdea = async (ideaId: string, userId: string) => {
       "pmf",
       "next_steps",
       "viability",
+      "google_keywords",
     ];
 
     for (const sectionType of sections) {

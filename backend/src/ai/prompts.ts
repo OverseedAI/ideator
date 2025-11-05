@@ -171,6 +171,35 @@ Provide:
 `.trim();
 };
 
+export const createGoogleKeywordsPrompt = (ideaTitle: string, ideaDescription: string): string => {
+  return `
+Analyze relevant Google search keywords for this business idea:
+
+Idea: ${ideaTitle}
+Description: ${ideaDescription}
+
+IMPORTANT: Use web search to find REAL search data and keyword trends.
+
+Provide a comprehensive keyword analysis:
+1. Identify 10-15 highly relevant search keywords and phrases that potential customers would use
+2. For each keyword, provide:
+   - Search volume estimate (e.g., "10K-100K/month", "1K-10K/month")
+   - Market sentiment (positive/neutral/negative) - how favorable the search intent is for a business
+   - Competition level (low/medium/high) for ranking or advertising on this keyword
+   - Relevance score (0-100) to the business idea
+
+3. Include a mix of:
+   - High-volume generic keywords (broader market)
+   - Mid-volume specific keywords (targeted audience)
+   - Long-tail keywords (niche opportunities)
+
+4. Provide an overall summary of the keyword landscape
+5. Give 3-5 strategic recommendations for keyword targeting and SEO strategy
+
+Focus on keywords that indicate purchase intent, problem awareness, or solution seeking.
+`.trim();
+};
+
 export type AnalysisPromptFunction = (
   ideaTitle: string,
   ideaDescription: string,
@@ -185,4 +214,5 @@ export const analysisPrompts = {
   pmf: createPmfPrompt,
   next_steps: createNextStepsPrompt,
   viability: createViabilityPrompt,
+  google_keywords: createGoogleKeywordsPrompt,
 };

@@ -29,7 +29,8 @@ export type AnalysisSectionType =
   | "business_values"
   | "pmf"
   | "next_steps"
-  | "viability";
+  | "viability"
+  | "google_keywords";
 
 // Analysis content structures
 export interface EducationContent {
@@ -94,4 +95,16 @@ export interface ViabilityContent {
     reasoning: string;
   }[];
   overallAssessment: string;
+}
+
+export interface GoogleKeywordsContent {
+  keywords: {
+    term: string;
+    searchVolume: string;
+    sentiment: "positive" | "neutral" | "negative";
+    competitionLevel: "low" | "medium" | "high";
+    relevanceScore: number; // 0-100
+  }[];
+  summary: string;
+  recommendations: string[];
 }

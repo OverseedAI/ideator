@@ -43,7 +43,7 @@ model Idea {
 model Analysis {
   id          String   @id @default(uuid())
   ideaId      String   @map("idea_id")
-  sectionType String   @map("section_type") // education, swot, features, business_values, pmf, next_steps, viability
+  sectionType String   @map("section_type") // education, swot, features, business_values, pmf, next_steps, viability, google_keywords
   content     Json     // Flexible JSON structure for each section type
   createdAt   DateTime @default(now()) @map("created_at")
 

@@ -106,6 +106,35 @@ export const viabilitySchema = z.object({
 
 export type ViabilityContent = z.infer<typeof viabilitySchema>;
 
+// Google Keywords content schema
+export const googleKeywordsSchema = z.object({
+  keywords: z
+    .array(
+      z.object({
+        term: z.string().describe("Search keyword or phrase"),
+        searchVolume: z.string().describe("Estimated search volume (e.g., '10K-100K/month')"),
+        sentiment: z
+          .enum(["positive", "neutral", "negative"])
+          .describe("Market sentiment for this keyword"),
+        competitionLevel: z
+          .enum(["low", "medium", "high"])
+          .describe("Competition level for this keyword"),
+        relevanceScore: z
+          .number()
+          .min(0)
+          .max(100)
+          .describe("Relevance to the business idea (0-100)"),
+      })
+    )
+    .describe("10-15 relevant search keywords with analysis"),
+  summary: z.string().describe("Overall keyword landscape summary"),
+  recommendations: z
+    .array(z.string())
+    .describe("3-5 strategic recommendations based on keyword analysis"),
+});
+
+export type GoogleKeywordsContent = z.infer<typeof googleKeywordsSchema>;
+
 // Export all schemas in a map for easy access
 export const analysisSchemas = {
   education: educationSchema,
@@ -115,4 +144,5 @@ export const analysisSchemas = {
   pmf: pmfSchema,
   next_steps: nextStepsSchema,
   viability: viabilitySchema,
+  google_keywords: googleKeywordsSchema,
 } as const;

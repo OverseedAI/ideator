@@ -17,6 +17,7 @@ import { SwotSection } from "@/components/idea/SwotSection";
 import { FeaturesSection } from "@/components/idea/FeaturesSection";
 import { ViabilitySection } from "@/components/idea/ViabilitySection";
 import { AnalysisSection } from "@/components/idea/AnalysisSection";
+import { GoogleKeywordsSection } from "@/components/idea/GoogleKeywordsSection";
 import { Lightbulb, Target, DollarSign, ListChecks } from "lucide-react";
 import { useIdea, useDeleteIdea } from "@/hooks/queries/useIdeas";
 import { useAnalyses } from "@/hooks/queries/useAnalyses";
@@ -184,6 +185,12 @@ export const IdeaDetail = () => {
 
             {getAnalysis("features") ? (
               <FeaturesSection content={getAnalysis("features")!.content} />
+            ) : (
+              isAnalysisInProgress && <SkeletonCard />
+            )}
+
+            {getAnalysis("google_keywords") ? (
+              <GoogleKeywordsSection content={getAnalysis("google_keywords")!.content} />
             ) : (
               isAnalysisInProgress && <SkeletonCard />
             )}

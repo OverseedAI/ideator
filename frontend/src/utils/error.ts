@@ -25,7 +25,7 @@ export const getErrorMessage = (error: unknown, fallback = "Something went wrong
 
   try {
     return JSON.stringify(error);
-  } catch (err) {
+  } catch {
     return fallback;
   }
 };
