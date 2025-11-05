@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Idea, Analysis, AnalysisSectionType } from "@/types";
 import { Button } from "@/components/common/Button";
@@ -17,10 +17,11 @@ import { SwotSection } from "@/components/idea/SwotSection";
 import { FeaturesSection } from "@/components/idea/FeaturesSection";
 import { ViabilitySection } from "@/components/idea/ViabilitySection";
 import { AnalysisSection } from "@/components/idea/AnalysisSection";
-import { Lightbulb, Target, DollarSign, ListChecks } from "lucide-react";
+import { Lightbulb, Target, DollarSign, ListChecks, Download } from "lucide-react";
 import { useIdea, useDeleteIdea } from "@/hooks/queries/useIdeas";
 import { useAnalyses } from "@/hooks/queries/useAnalyses";
 import { getErrorMessage } from "@/utils/error";
+import { exportIdeaToPdf } from "@/services/ideaService";
 
 const statusVariants: Record<Idea["status"], "default" | "warning" | "success" | "error"> = {
   pending: "default",
@@ -32,6 +33,7 @@ const statusVariants: Record<Idea["status"], "default" | "warning" | "success" |
 export const IdeaDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
 
   const {
     data: idea,
@@ -88,6 +90,30 @@ export const IdeaDetail = () => {
     });
   };
 
+  const handleExportPdf = async () => {
+    if (!id) return;
+
+    setIsExportingPdf(true);
+    try {
+      const blob = await exportIdeaToPdf(id);
+
+      // Create a download link and trigger download
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${idea?.title || "idea"}-analysis.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to export PDF:", error);
+      alert("Failed to export PDF. Please try again.");
+    } finally {
+      setIsExportingPdf(false);
+    }
+  };
+
   if (isIdeaLoading && !idea) {
     return (
       <div>
@@ -121,14 +147,27 @@ export const IdeaDetail = () => {
         <Button variant="ghost" onClick={() => navigate("/app")}>
           ← Back to Dashboard
         </Button>
-        <Button
-          variant="danger"
-          onClick={handleDelete}
-          isLoading={deleteMutation.isPending}
-          disabled={deleteMutation.isPending}
-        >
-          Delete Idea
-        </Button>
+        <div className="flex gap-3">
+          {idea?.status === "completed" && (
+            <Button
+              variant="outline"
+              onClick={handleExportPdf}
+              isLoading={isExportingPdf}
+              disabled={isExportingPdf}
+            >
+              <Download size={16} className="mr-2" />
+              Export as PDF
+            </Button>
+          )}
+          <Button
+            variant="danger"
+            onClick={handleDelete}
+            isLoading={deleteMutation.isPending}
+            disabled={deleteMutation.isPending}
+          >
+            Delete Idea
+          </Button>
+        </div>
       </div>
 
       <Card className="mb-8">

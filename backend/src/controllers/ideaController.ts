@@ -3,6 +3,7 @@ import { z } from "zod";
 import { AuthRequest } from "../types";
 import { asyncHandler } from "../utils/asyncHandler";
 import * as ideaService from "../services/ideaService";
+import * as pdfService from "../services/pdfService";
 
 const createIdeaSchema = z.object({
   body: z.object({
@@ -68,6 +69,20 @@ export const deleteIdea = asyncHandler(async (req: AuthRequest, res: Response): 
   const result = await ideaService.deleteIdea(id, userId);
 
   res.status(200).json(result);
+});
+
+export const exportPdf = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
+  const userId = req.user!.userId;
+  const { id } = req.params;
+
+  const pdfBuffer = await pdfService.generatePdfForIdea(id, userId);
+
+  // Set headers for PDF download
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader("Content-Disposition", `attachment; filename="idea-analysis-${id}.pdf"`);
+  res.setHeader("Content-Length", pdfBuffer.length);
+
+  res.send(pdfBuffer);
 });
 
 export { createIdeaSchema, updateIdeaSchema, ideaIdSchema };
