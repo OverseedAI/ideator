@@ -1,6 +1,5 @@
 import { useState, FormEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
 import { Input } from "@/components/common/Input";
 import { Button } from "@/components/common/Button";
 import {
@@ -10,28 +9,29 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/common/Card";
+import { useAuthRedirect, useLogin } from "@/hooks/queries/useAuth";
+import { getErrorMessage } from "@/utils/error";
 
 export const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-
-  const { login } = useAuth();
   const navigate = useNavigate();
+  const loginMutation = useLogin();
+  useAuthRedirect({ requireAuth: false, redirectTo: "/app" });
+
+  const errorMessage = loginMutation.error
+    ? getErrorMessage(loginMutation.error, "Failed to login")
+    : "";
+  const isSubmitting = loginMutation.isPending;
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setError("");
-    setIsLoading(true);
 
     try {
-      await login(email, password);
+      await loginMutation.mutateAsync({ email, password });
       navigate("/app");
-    } catch (err: any) {
-      setError(err.response?.data?.error || "Failed to login");
-    } finally {
-      setIsLoading(false);
+    } catch (err) {
+      console.error("Failed to login", err);
     }
   };
 
@@ -44,7 +44,9 @@ export const Login = () => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {error && <div className="rounded-lg bg-red-50 p-3 text-sm text-red-800">{error}</div>}
+            {errorMessage && (
+              <div className="rounded-lg bg-red-50 p-3 text-sm text-red-800">{errorMessage}</div>
+            )}
 
             <Input
               type="email"
@@ -64,7 +66,12 @@ export const Login = () => {
               required
             />
 
-            <Button type="submit" className="w-full" isLoading={isLoading} disabled={isLoading}>
+            <Button
+              type="submit"
+              className="w-full"
+              isLoading={isSubmitting}
+              disabled={isSubmitting}
+            >
               Sign in
             </Button>
 

@@ -25,20 +25,10 @@ export const setAuthToken = (token: string) => {
   authStorage.setToken(token);
 };
 
-export const setUser = (user: User) => {
-  localStorage.setItem("user", JSON.stringify(user));
-};
-
-export const getStoredUser = (): User | null => {
-  const userStr = localStorage.getItem("user");
-  return userStr ? JSON.parse(userStr) : null;
-};
-
 export const getStoredToken = (): string | null => {
   return authStorage.getToken();
 };
 
 export const clearAuth = () => {
   authStorage.clearToken();
-  localStorage.removeItem("user");
 };

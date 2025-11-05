@@ -1,6 +1,5 @@
 import { useState, FormEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
 import { Input } from "@/components/common/Input";
 import { Button } from "@/components/common/Button";
 import {
@@ -10,29 +9,30 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/common/Card";
+import { useAuthRedirect, useSignup } from "@/hooks/queries/useAuth";
+import { getErrorMessage } from "@/utils/error";
 
 export const Signup = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-
-  const { signup } = useAuth();
   const navigate = useNavigate();
+  const signupMutation = useSignup();
+  useAuthRedirect({ requireAuth: false, redirectTo: "/app" });
+
+  const errorMessage = signupMutation.error
+    ? getErrorMessage(signupMutation.error, "Failed to sign up")
+    : "";
+  const isSubmitting = signupMutation.isPending;
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setError("");
-    setIsLoading(true);
 
     try {
-      await signup(email, password, name);
+      await signupMutation.mutateAsync({ email, password, name });
       navigate("/app");
-    } catch (err: any) {
-      setError(err.response?.data?.error || "Failed to sign up");
-    } finally {
-      setIsLoading(false);
+    } catch (err) {
+      console.error("Failed to sign up", err);
     }
   };
 
@@ -45,7 +45,9 @@ export const Signup = () => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {error && <div className="rounded-lg bg-red-50 p-3 text-sm text-red-800">{error}</div>}
+            {errorMessage && (
+              <div className="rounded-lg bg-red-50 p-3 text-sm text-red-800">{errorMessage}</div>
+            )}
 
             <Input
               type="text"
@@ -75,7 +77,12 @@ export const Signup = () => {
               minLength={8}
             />
 
-            <Button type="submit" className="w-full" isLoading={isLoading} disabled={isLoading}>
+            <Button
+              type="submit"
+              className="w-full"
+              isLoading={isSubmitting}
+              disabled={isSubmitting}
+            >
               Sign up
             </Button>
 
