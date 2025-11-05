@@ -1,6 +1,5 @@
 import { useState, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import * as ideaService from "@/services/ideaService";
 import { Input } from "@/components/common/Input";
 import { Textarea } from "@/components/common/Textarea";
 import { Button } from "@/components/common/Button";
@@ -11,30 +10,35 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/common/Card";
+import { useAnalyzeIdea, useCreateIdea } from "@/hooks/queries/useIdeas";
+import { getErrorMessage } from "@/utils/error";
 
 export const NewIdea = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const createIdeaMutation = useCreateIdea();
+  const analyzeIdeaMutation = useAnalyzeIdea();
+
+  const createErrorMessage = createIdeaMutation.error
+    ? getErrorMessage(createIdeaMutation.error, "Failed to create idea")
+    : "";
+  const analyzeErrorMessage = analyzeIdeaMutation.error
+    ? getErrorMessage(analyzeIdeaMutation.error, "Failed to start analysis")
+    : "";
+  const errorMessage = createErrorMessage || analyzeErrorMessage;
+
+  const isSubmitting = createIdeaMutation.isPending || analyzeIdeaMutation.isPending;
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setError("");
-    setIsLoading(true);
 
     try {
-      const idea = await ideaService.createIdea({ title, description });
-
-      // Trigger analysis in the background (don't wait for it)
-      ideaService.analyzeIdea(idea.id).catch(console.error);
-
-      // Redirect immediately
+      const idea = await createIdeaMutation.mutateAsync({ title, description });
+      await analyzeIdeaMutation.mutateAsync(idea.id);
       navigate(`/app/ideas/${idea.id}`);
-    } catch (err: any) {
-      setError(err.response?.data?.error || "Failed to create idea");
-      setIsLoading(false);
+    } catch (err) {
+      console.error("Failed to create or analyze idea", err);
     }
   };
 
@@ -56,7 +60,9 @@ export const NewIdea = () => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            {error && <div className="rounded-lg bg-red-50 p-3 text-sm text-red-800">{error}</div>}
+            {errorMessage && (
+              <div className="rounded-lg bg-red-50 p-3 text-sm text-red-800">{errorMessage}</div>
+            )}
 
             <Input
               label="Idea Title"
@@ -80,14 +86,14 @@ export const NewIdea = () => {
             />
 
             <div className="flex gap-4">
-              <Button type="submit" isLoading={isLoading} disabled={isLoading}>
-                {isLoading ? "Creating..." : "Create Idea"}
+              <Button type="submit" isLoading={isSubmitting} disabled={isSubmitting}>
+                {isSubmitting ? "Creating..." : "Create Idea"}
               </Button>
               <Button
                 type="button"
                 variant="ghost"
                 onClick={() => navigate("/app")}
-                disabled={isLoading}
+                disabled={isSubmitting}
               >
                 Cancel
               </Button>

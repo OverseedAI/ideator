@@ -1,4 +1,3 @@
-import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import {
   Card,
@@ -8,14 +7,19 @@ import {
   CardContent,
 } from "@/components/common/Card";
 import { Button } from "@/components/common/Button";
+import { useCurrentUser, useLogout } from "@/hooks/queries/useAuth";
 
 export const Settings = () => {
-  const { user, logout } = useAuth();
+  const { user } = useCurrentUser();
+  const logoutMutation = useLogout();
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    logout();
-    navigate("/login");
+    logoutMutation.mutate(undefined, {
+      onSuccess: () => {
+        navigate("/login");
+      },
+    });
   };
 
   return (
@@ -67,7 +71,12 @@ export const Settings = () => {
             <CardDescription>Manage your account</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button variant="danger" onClick={handleLogout}>
+            <Button
+              variant="danger"
+              onClick={handleLogout}
+              isLoading={logoutMutation.isPending}
+              disabled={logoutMutation.isPending}
+            >
               Logout
             </Button>
           </CardContent>

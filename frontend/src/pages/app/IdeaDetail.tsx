@@ -1,7 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Idea, Analysis, AnalysisSectionType } from "@/types";
-import * as ideaService from "@/services/ideaService";
 import { Button } from "@/components/common/Button";
 import { Badge } from "@/components/common/Badge";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
@@ -19,252 +18,77 @@ import { FeaturesSection } from "@/components/idea/FeaturesSection";
 import { ViabilitySection } from "@/components/idea/ViabilitySection";
 import { AnalysisSection } from "@/components/idea/AnalysisSection";
 import { Lightbulb, Target, DollarSign, ListChecks } from "lucide-react";
-import { config } from "@/config";
+import { useIdea, useDeleteIdea } from "@/hooks/queries/useIdeas";
+import { useAnalyses } from "@/hooks/queries/useAnalyses";
+import { getErrorMessage } from "@/utils/error";
 
-const sectionOrder: AnalysisSectionType[] = [
-  "education",
-  "swot",
-  "features",
-  "business_values",
-  "pmf",
-  "next_steps",
-  "viability",
-];
+const statusVariants: Record<Idea["status"], "default" | "warning" | "success" | "error"> = {
+  pending: "default",
+  analyzing: "warning",
+  completed: "success",
+  failed: "error",
+};
 
 export const IdeaDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [idea, setIdea] = useState<Idea | null>(null);
-  const [analyses, setAnalyses] = useState<Analysis[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [isDeleting, setIsDeleting] = useState(false);
-  const streamControllerRef = useRef<AbortController | null>(null);
-  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const loadIdea = useCallback(async () => {
-    if (!id) return;
-
-    try {
-      setIsLoading(true);
-      setError("");
-      const [ideaData, analysesData] = await Promise.all([
-        ideaService.getIdeaById(id),
-        ideaService.getIdeaAnalyses(id),
-      ]);
-      setIdea(ideaData);
-      setAnalyses(analysesData);
-    } catch (err: any) {
-      setError(err.response?.data?.error || "Failed to load idea");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [id]);
-
-  useEffect(() => {
-    // Reset state when id changes
-    setIdea(null);
-    setAnalyses([]);
-    setError("");
-    loadIdea();
-  }, [id, loadIdea]);
+  const {
+    data: idea,
+    isLoading: isIdeaLoading,
+    isError: isIdeaError,
+    error: ideaError,
+    refetch: refetchIdea,
+  } = useIdea(id, {
+    enabled: Boolean(id),
+  });
 
   const ideaStatus = idea?.status;
+  const isAnalysisInProgress = ideaStatus === "pending" || ideaStatus === "analyzing";
+
+  const analysesQuery = useAnalyses(id, {
+    enabled: Boolean(id),
+    refetchInterval: isAnalysisInProgress ? 5000 : false,
+  });
+
+  const deleteMutation = useDeleteIdea();
 
   useEffect(() => {
-    if (!id || !ideaStatus) {
+    if (!isAnalysisInProgress) {
       return;
     }
 
-    const shouldStream = ["pending", "analyzing"].includes(ideaStatus);
+    const interval = setInterval(() => {
+      refetchIdea();
+    }, 5000);
 
-    if (shouldStream) {
-      if (streamControllerRef.current) {
-        return;
-      }
+    return () => clearInterval(interval);
+  }, [isAnalysisInProgress, refetchIdea]);
 
-      const token = localStorage.getItem("token");
-      if (!token) {
-        return;
-      }
-
-      const controller = new AbortController();
-      streamControllerRef.current = controller;
-
-      const clearReconnectTimeout = () => {
-        if (reconnectTimeoutRef.current) {
-          clearTimeout(reconnectTimeoutRef.current);
-          reconnectTimeoutRef.current = null;
-        }
-      };
-
-      const handleEvent = (event: string, payload: unknown) => {
-        if (event === "analysis") {
-          if (!payload || typeof payload !== "object") {
-            return;
-          }
-          const analysis = payload as Analysis;
-          setAnalyses((prev) => {
-            const existingIndex = prev.findIndex(
-              (item) => item.sectionType === analysis.sectionType
-            );
-            const updated = [...prev];
-            if (existingIndex !== -1) {
-              updated[existingIndex] = analysis;
-            } else {
-              updated.push(analysis);
-            }
-            return updated.sort(
-              (a, b) =>
-                sectionOrder.indexOf(a.sectionType) - sectionOrder.indexOf(b.sectionType)
-            );
-          });
-        } else if (event === "ideaStatus") {
-          if (!payload || typeof payload !== "object" || !("status" in payload)) {
-            return;
-          }
-          const { status } = payload as { status: Idea["status"] };
-          setIdea((prev) => (prev ? { ...prev, status } : prev));
-        }
-      };
-
-      const scheduleReconnect = () => {
-        if (controller.signal.aborted || reconnectTimeoutRef.current) {
-          return;
-        }
-        reconnectTimeoutRef.current = setTimeout(() => {
-          reconnectTimeoutRef.current = null;
-          connect();
-        }, 2000);
-      };
-
-      const connect = async () => {
-        try {
-          const response = await fetch(`${config.apiBaseUrl}/ideas/${id}/analyses/stream`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-            signal: controller.signal,
-          });
-
-          if (!response.ok || !response.body) {
-            throw new Error("Failed to establish analysis stream");
-          }
-
-          const reader = response.body.getReader();
-          const decoder = new TextDecoder("utf-8");
-          let buffer = "";
-
-          while (!controller.signal.aborted) {
-            const { value, done } = await reader.read();
-            if (done) {
-              break;
-            }
-
-            buffer += decoder.decode(value, { stream: true });
-
-            let boundary = buffer.indexOf("\n\n");
-            while (boundary !== -1) {
-              const rawEvent = buffer.slice(0, boundary);
-              buffer = buffer.slice(boundary + 2);
-
-              const trimmed = rawEvent.trim();
-              if (trimmed && !trimmed.startsWith(":")) {
-                const lines = trimmed.split("\n");
-                let eventName = "message";
-                let dataPayload = "";
-
-                for (const line of lines) {
-                  if (line.startsWith("event:")) {
-                    eventName = line.slice(6).trim();
-                  } else if (line.startsWith("data:")) {
-                    const dataLine = line.slice(5).trim();
-                    dataPayload = dataPayload
-                      ? `${dataPayload}\n${dataLine}`
-                      : dataLine;
-                  }
-                }
-
-                if (dataPayload) {
-                  try {
-                    const parsed = JSON.parse(dataPayload);
-                    handleEvent(eventName, parsed);
-                  } catch (err) {
-                    console.error("Failed to parse analysis stream payload", err);
-                  }
-                }
-              }
-
-              boundary = buffer.indexOf("\n\n");
-            }
-          }
-
-          if (!controller.signal.aborted) {
-            scheduleReconnect();
-          }
-        } catch (err) {
-          if (!controller.signal.aborted) {
-            console.error("Analysis stream connection error", err);
-            scheduleReconnect();
-          }
-        }
-      };
-
-      connect();
-
-      return () => {
-        clearReconnectTimeout();
-        if (!controller.signal.aborted) {
-          controller.abort();
-        }
-        streamControllerRef.current = null;
-      };
+  const analysesByType = useMemo(() => {
+    const map = new Map<AnalysisSectionType, Analysis>();
+    for (const analysis of analysesQuery.data ?? []) {
+      map.set(analysis.sectionType, analysis);
     }
+    return map;
+  }, [analysesQuery.data]);
 
-    if (streamControllerRef.current) {
-      if (!streamControllerRef.current.signal.aborted) {
-        streamControllerRef.current.abort();
-      }
-      streamControllerRef.current = null;
-    }
-    if (reconnectTimeoutRef.current) {
-      clearTimeout(reconnectTimeoutRef.current);
-      reconnectTimeoutRef.current = null;
-    }
-  }, [id, ideaStatus]);
+  const getAnalysis = (type: AnalysisSectionType) => analysesByType.get(type);
 
-  useEffect(() => {
-    return () => {
-      if (streamControllerRef.current && !streamControllerRef.current.signal.aborted) {
-        streamControllerRef.current.abort();
-      }
-      if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  const getAnalysis = (type: AnalysisSectionType) => {
-    return analyses.find((a) => a.sectionType === type);
-  };
-
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!id) return;
     if (!confirm("Are you sure you want to delete this idea? This action cannot be undone.")) {
       return;
     }
 
-    setIsDeleting(true);
-    try {
-      await ideaService.deleteIdea(id);
-      navigate("/app");
-    } catch (err: any) {
-      alert(err.response?.data?.error || "Failed to delete idea");
-      setIsDeleting(false);
-    }
+    deleteMutation.mutate(id, {
+      onSuccess: () => {
+        navigate("/app");
+      },
+    });
   };
 
-  if (isLoading) {
+  if (isIdeaLoading && !idea) {
     return (
       <div>
         <div className="mb-8">
@@ -282,18 +106,14 @@ export const IdeaDetail = () => {
     );
   }
 
-  if (error || !idea) {
-    return <div className="rounded-lg bg-red-50 p-4 text-red-800">{error || "Idea not found"}</div>;
+  if (isIdeaError || !idea) {
+    const message = getErrorMessage(ideaError, "Failed to load idea");
+    return <div className="rounded-lg bg-red-50 p-4 text-red-800">{message}</div>;
   }
 
-  const statusVariants: Record<string, "default" | "warning" | "success" | "error"> = {
-    pending: "default",
-    analyzing: "warning",
-    completed: "success",
-    failed: "error",
-  };
-
-  const isAnalysisInProgress = ideaStatus === "pending" || ideaStatus === "analyzing";
+  const analysesErrorMessage = analysesQuery.isError
+    ? getErrorMessage(analysesQuery.error, "Failed to load analyses")
+    : "";
 
   return (
     <div>
@@ -304,8 +124,8 @@ export const IdeaDetail = () => {
         <Button
           variant="danger"
           onClick={handleDelete}
-          isLoading={isDeleting}
-          disabled={isDeleting}
+          isLoading={deleteMutation.isPending}
+          disabled={deleteMutation.isPending}
         >
           Delete Idea
         </Button>
@@ -329,14 +149,12 @@ export const IdeaDetail = () => {
       </Card>
 
       {isAnalysisInProgress && (
-        <>
-          <div className="mb-8 rounded-lg bg-blue-50 p-4 text-blue-800">
-            <div className="flex items-center gap-3">
-              <LoadingSpinner size="sm" />
-              <span>AI is analyzing your idea. This may take a few moments...</span>
-            </div>
+        <div className="mb-8 rounded-lg bg-blue-50 p-4 text-blue-800">
+          <div className="flex items-center gap-3">
+            <LoadingSpinner size="sm" />
+            <span>AI is analyzing your idea. This may take a few moments...</span>
           </div>
-        </>
+        </div>
       )}
 
       {idea.status === "failed" && (
@@ -345,7 +163,11 @@ export const IdeaDetail = () => {
         </div>
       )}
 
-      {(analyses.length > 0 || isAnalysisInProgress) && (
+      {analysesQuery.isError && (
+        <div className="mb-8 rounded-lg bg-red-50 p-4 text-red-800">{analysesErrorMessage}</div>
+      )}
+
+      {(analysesQuery.data?.length ?? 0) > 0 || isAnalysisInProgress ? (
         <>
           <div className="space-y-8">
             {getAnalysis("education") ? (
@@ -491,7 +313,7 @@ export const IdeaDetail = () => {
             )}
           </div>
         </>
-      )}
+      ) : null}
     </div>
   );
 };
