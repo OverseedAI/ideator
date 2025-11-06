@@ -1,25 +1,19 @@
-import { useEffect, useMemo, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { Idea, Analysis, AnalysisSectionType } from "@/types";
+import { useEffect, useState } from "react";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import { Idea } from "@/types";
 import { Button } from "@/components/common/Button";
 import { Badge } from "@/components/common/Badge";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { SkeletonCard } from "@/components/common/Skeleton";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/common/Card";
-import { EducationSectionComponent } from "@/components/idea/EducationSection";
-import { SwotSection } from "@/components/idea/SwotSection";
-import { FeaturesSection } from "@/components/idea/FeaturesSection";
-import { ViabilitySection } from "@/components/idea/ViabilitySection";
-import { AnalysisSection } from "@/components/idea/AnalysisSection";
-import { GoogleKeywordsSection } from "@/components/idea/GoogleKeywordsSection";
-import { Lightbulb, Target, DollarSign, ListChecks, Download } from "lucide-react";
-import { useIdea, useDeleteIdea } from "@/hooks/queries/useIdeas";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/common/Card";
+import { Tabs, TabPanel } from "@/components/common/Tabs";
+import { AnalysisTab } from "@/components/idea/tabs/AnalysisTab";
+import { TasksTab } from "@/components/idea/tabs/TasksTab";
+import { SocialMediaTab } from "@/components/idea/tabs/SocialMediaTab";
+import { LeadsTab } from "@/components/idea/tabs/LeadsTab";
+import { SettingsTab } from "@/components/idea/tabs/SettingsTab";
+import { Lightbulb, Download, BarChart3, ListTodo, Share2, Users, Settings } from "lucide-react";
+import { useIdea } from "@/hooks/queries/useIdeas";
 import { useAnalyses } from "@/hooks/queries/useAnalyses";
 import { getErrorMessage } from "@/utils/error";
 import { exportIdeaToPdf } from "@/services/ideaService";
@@ -31,10 +25,21 @@ const statusVariants: Record<Idea["status"], "default" | "warning" | "success" |
   failed: "error",
 };
 
+const tabs = [
+  { id: "analysis", label: "Analysis", icon: <BarChart3 size={18} /> },
+  { id: "tasks", label: "Tasks", icon: <ListTodo size={18} /> },
+  { id: "social", label: "Social Media", icon: <Share2 size={18} /> },
+  { id: "leads", label: "Leads", icon: <Users size={18} /> },
+  { id: "settings", label: "Settings", icon: <Settings size={18} /> },
+];
+
 export const IdeaDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [isExportingPdf, setIsExportingPdf] = useState(false);
+
+  const activeTab = searchParams.get("tab") || "analysis";
 
   const {
     data: idea,
@@ -54,8 +59,6 @@ export const IdeaDetail = () => {
     refetchInterval: isAnalysisInProgress ? 5000 : false,
   });
 
-  const deleteMutation = useDeleteIdea();
-
   useEffect(() => {
     if (!isAnalysisInProgress) {
       return;
@@ -68,27 +71,8 @@ export const IdeaDetail = () => {
     return () => clearInterval(interval);
   }, [isAnalysisInProgress, refetchIdea]);
 
-  const analysesByType = useMemo(() => {
-    const map = new Map<AnalysisSectionType, Analysis>();
-    for (const analysis of analysesQuery.data ?? []) {
-      map.set(analysis.sectionType, analysis);
-    }
-    return map;
-  }, [analysesQuery.data]);
-
-  const getAnalysis = (type: AnalysisSectionType) => analysesByType.get(type);
-
-  const handleDelete = () => {
-    if (!id) return;
-    if (!confirm("Are you sure you want to delete this idea? This action cannot be undone.")) {
-      return;
-    }
-
-    deleteMutation.mutate(id, {
-      onSuccess: () => {
-        navigate("/app");
-      },
-    });
+  const handleTabChange = (tabId: string) => {
+    setSearchParams({ tab: tabId });
   };
 
   const handleExportPdf = async () => {
@@ -148,27 +132,17 @@ export const IdeaDetail = () => {
         <Button variant="ghost" onClick={() => navigate("/app")}>
           ← Back to Dashboard
         </Button>
-        <div className="flex gap-3">
-          {idea?.status === "completed" && (
-            <Button
-              variant="secondary"
-              onClick={handleExportPdf}
-              isLoading={isExportingPdf}
-              disabled={isExportingPdf}
-            >
-              <Download size={16} className="mr-2" />
-              Export as PDF
-            </Button>
-          )}
+        {idea?.status === "completed" && activeTab === "analysis" && (
           <Button
-            variant="danger"
-            onClick={handleDelete}
-            isLoading={deleteMutation.isPending}
-            disabled={deleteMutation.isPending}
+            variant="secondary"
+            onClick={handleExportPdf}
+            isLoading={isExportingPdf}
+            disabled={isExportingPdf}
           >
-            Delete Idea
+            <Download size={16} className="mr-2" />
+            Export as PDF
           </Button>
-        </div>
+        )}
       </div>
 
       <Card className="mb-8">
@@ -188,7 +162,7 @@ export const IdeaDetail = () => {
         </CardContent>
       </Card>
 
-      {isAnalysisInProgress && (
+      {isAnalysisInProgress && activeTab === "analysis" && (
         <div className="mb-8 rounded-lg bg-blue-50 p-4 text-blue-800">
           <div className="flex items-center gap-3">
             <LoadingSpinner size="sm" />
@@ -197,169 +171,46 @@ export const IdeaDetail = () => {
         </div>
       )}
 
-      {idea.status === "failed" && (
+      {idea.status === "failed" && activeTab === "analysis" && (
         <div className="mb-8 rounded-lg bg-red-50 p-4 text-red-800">
           Analysis failed. Please try again.
         </div>
       )}
 
-      {analysesQuery.isError && (
+      {analysesQuery.isError && activeTab === "analysis" && (
         <div className="mb-8 rounded-lg bg-red-50 p-4 text-red-800">{analysesErrorMessage}</div>
       )}
 
-      {(analysesQuery.data?.length ?? 0) > 0 || isAnalysisInProgress ? (
-        <>
-          <div className="space-y-8">
-            {getAnalysis("education") ? (
-              <EducationSectionComponent content={getAnalysis("education")!.content} />
-            ) : (
-              isAnalysisInProgress && <SkeletonCard />
-            )}
+      <Tabs tabs={tabs} activeTab={activeTab} onTabChange={handleTabChange} />
 
-            {getAnalysis("swot") ? (
-              <SwotSection content={getAnalysis("swot")!.content} />
-            ) : (
-              isAnalysisInProgress && <SkeletonCard />
-            )}
-
-            {getAnalysis("features") ? (
-              <FeaturesSection content={getAnalysis("features")!.content} />
-            ) : (
-              isAnalysisInProgress && <SkeletonCard />
-            )}
-
-            {getAnalysis("google_keywords") ? (
-              <GoogleKeywordsSection content={getAnalysis("google_keywords")!.content} />
-            ) : (
-              isAnalysisInProgress && <SkeletonCard />
-            )}
-
-            {getAnalysis("business_values") ? (
-              <AnalysisSection
-                title="Business Values"
-                description="Core differentiators and strategy"
-                icon={<DollarSign size={28} />}
-              >
-                <div className="grid gap-6 lg:grid-cols-2">
-                  <div>
-                    <h4 className="mb-3">Product Differentiators (Moats)</h4>
-                    <ul className="modern-list">
-                      {getAnalysis("business_values")!.content.moats.map(
-                        (moat: string, idx: number) => (
-                          <li key={idx}>{moat}</li>
-                        )
-                      )}
-                    </ul>
-                  </div>
-                  <div>
-                    <h4 className="mb-3">Target Market</h4>
-                    <p className="text-text-secondary mb-2">
-                      <strong>Size:</strong>{" "}
-                      {getAnalysis("business_values")!.content.targetMarket.size}
-                    </p>
-                    <p className="text-text-secondary mb-2">
-                      <strong>Segments:</strong>{" "}
-                      {getAnalysis("business_values")!.content.targetMarket.segments.join(", ")}
-                    </p>
-                    <p className="text-text-secondary">
-                      {getAnalysis("business_values")!.content.targetMarket.description}
-                    </p>
-                  </div>
-                  <div>
-                    <h4 className="mb-3">Pricing Strategies</h4>
-                    {getAnalysis("business_values")!.content.pricingStrategies.map(
-                      (strategy: any, idx: number) => (
-                        <div key={idx} className="mb-3">
-                          <p className="font-medium text-text-primary">{strategy.model}</p>
-                          <p className="text-text-secondary">{strategy.rationale}</p>
-                        </div>
-                      )
-                    )}
-                  </div>
-                  <div>
-                    <h4 className="mb-3">Timeline to Market</h4>
-                    <p className="text-text-secondary">
-                      {getAnalysis("business_values")!.content.timelineToMarket}
-                    </p>
-                  </div>
-                </div>
-              </AnalysisSection>
-            ) : (
-              isAnalysisInProgress && <SkeletonCard />
-            )}
+      <TabPanel isActive={activeTab === "analysis"}>
+        {(analysesQuery.data?.length ?? 0) > 0 || isAnalysisInProgress ? (
+          <AnalysisTab analyses={analysesQuery.data ?? []} isAnalysisInProgress={isAnalysisInProgress} />
+        ) : (
+          <div className="py-12 text-center">
+            <BarChart3 size={48} className="mx-auto mb-4 text-text-secondary opacity-50" />
+            <p className="text-text-secondary">
+              No analysis available yet. Analysis will appear here once completed.
+            </p>
           </div>
+        )}
+      </TabPanel>
 
-          <div className="mt-8 grid gap-8 lg:grid-cols-2">
-            {getAnalysis("pmf") ? (
-              <AnalysisSection
-                title="Product-Market Fit Strategies"
-                description="Quick validation approaches"
-                icon={<Target size={28} />}
-              >
-                <div className="space-y-4">
-                  {getAnalysis("pmf")!.content.strategies.map((strategy: any, idx: number) => (
-                    <div key={idx} className="rounded-lg border border-border p-4">
-                      <h4 className="text-text-primary">{strategy.title}</h4>
-                      <div className="mt-2 flex gap-2">
-                        <Badge
-                          variant={
-                            strategy.effort === "low"
-                              ? "success"
-                              : strategy.effort === "medium"
-                                ? "warning"
-                                : "error"
-                          }
-                        >
-                          {strategy.effort} effort
-                        </Badge>
-                        <Badge variant="info">{strategy.timeline}</Badge>
-                      </div>
-                      <p className="mt-3 text-text-secondary">{strategy.description}</p>
-                    </div>
-                  ))}
-                </div>
-              </AnalysisSection>
-            ) : (
-              isAnalysisInProgress && <SkeletonCard />
-            )}
+      <TabPanel isActive={activeTab === "tasks"}>
+        <TasksTab ideaId={id!} analyses={analysesQuery.data ?? []} />
+      </TabPanel>
 
-            {getAnalysis("next_steps") ? (
-              <AnalysisSection
-                title="Next Steps"
-                description="Recommended actions to get started"
-                icon={<ListChecks size={28} />}
-              >
-                <div className="space-y-4">
-                  {getAnalysis("next_steps")!
-                    .content.steps.sort((a: any, b: any) => a.priority - b.priority)
-                    .map((step: any, idx: number) => (
-                      <div key={idx} className="flex gap-4">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-white font-semibold text-base">
-                          {step.priority}
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="text-text-primary">{step.title}</h4>
-                          <p className="mt-1 text-text-secondary">{step.description}</p>
-                          <p className="mt-2 text-sm text-text-secondary opacity-75">
-                            Estimated time: {step.estimatedTime}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                </div>
-              </AnalysisSection>
-            ) : (
-              isAnalysisInProgress && <SkeletonCard />
-            )}
+      <TabPanel isActive={activeTab === "social"}>
+        <SocialMediaTab />
+      </TabPanel>
 
-            {getAnalysis("viability") ? (
-              <ViabilitySection content={getAnalysis("viability")!.content} />
-            ) : (
-              isAnalysisInProgress && <SkeletonCard />
-            )}
-          </div>
-        </>
-      ) : null}
+      <TabPanel isActive={activeTab === "leads"}>
+        <LeadsTab />
+      </TabPanel>
+
+      <TabPanel isActive={activeTab === "settings"}>
+        <SettingsTab idea={idea} />
+      </TabPanel>
     </div>
   );
 };
