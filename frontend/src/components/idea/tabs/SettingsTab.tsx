@@ -76,9 +76,9 @@ export const SettingsTab = ({ idea }: SettingsTabProps) => {
                   Update the title of your idea to better reflect your vision.
                 </p>
               </div>
-              <div className="flex-1">
+              <div className="min-w-0">
                 {isEditingTitle ? (
-                  <div className="space-y-3">
+                  <div className="space-y-3 w-64">
                     <input
                       type="text"
                       value={editedTitle}
@@ -102,7 +102,7 @@ export const SettingsTab = ({ idea }: SettingsTabProps) => {
                     </div>
                   </div>
                 ) : (
-                  <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
                     <span className="text-text-primary">{idea.title}</span>
                     <Button onClick={() => setIsEditingTitle(true)} variant="secondary" size="sm">
                       Edit
@@ -125,7 +125,7 @@ export const SettingsTab = ({ idea }: SettingsTabProps) => {
                   undone.
                 </p>
               </div>
-              <div className="flex-1 flex justify-end">
+              <div>
                 <Button
                   variant="danger"
                   onClick={handleDelete}

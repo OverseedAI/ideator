@@ -36,6 +36,17 @@ export interface Analysis {
   createdAt: string;
 }
 
+export interface Task {
+  id: string;
+  ideaId: string;
+  title: string;
+  description?: string;
+  completed: boolean;
+  order: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export type AnalysisSectionType =
   | "education"
   | "swot"

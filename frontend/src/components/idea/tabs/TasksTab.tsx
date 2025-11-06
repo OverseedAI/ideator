@@ -1,17 +1,17 @@
 import { useState, useEffect } from "react";
-import { Analysis } from "@/types";
+import { Analysis, Task } from "@/types";
 import { Button } from "@/components/common/Button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/common/Card";
 import { Plus, Check, Trash2, ListTodo } from "lucide-react";
+import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { cn } from "@/utils/cn";
-
-interface Task {
-  id: string;
-  title: string;
-  description?: string;
-  completed: boolean;
-  createdAt: string;
-}
+import {
+  useTasks,
+  useCreateTask,
+  useBulkCreateTasks,
+  useUpdateTask,
+  useDeleteTask,
+} from "@/hooks/queries/useTasks";
 
 interface TasksTabProps {
   ideaId: string;
@@ -19,66 +19,95 @@ interface TasksTabProps {
 }
 
 export const TasksTab = ({ ideaId, analyses }: TasksTabProps) => {
-  const [tasks, setTasks] = useState<Task[]>([]);
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [isAddingTask, setIsAddingTask] = useState(false);
+  const [hasInitialized, setHasInitialized] = useState(false);
 
-  // Initialize tasks from next_steps analysis on first load
+  const tasksQuery = useTasks(ideaId);
+  const createTaskMutation = useCreateTask(ideaId);
+  const bulkCreateTasksMutation = useBulkCreateTasks(ideaId);
+  const updateTaskMutation = useUpdateTask(ideaId);
+  const deleteTaskMutation = useDeleteTask(ideaId);
+
+  const tasks = tasksQuery.data ?? [];
+
+  // Initialize tasks from next_steps analysis if there are no tasks yet
   useEffect(() => {
-    const storedTasks = localStorage.getItem(`tasks_${ideaId}`);
-    if (storedTasks) {
-      setTasks(JSON.parse(storedTasks));
-    } else {
-      // Populate from next_steps analysis if available
+    if (hasInitialized || tasksQuery.isLoading || !tasksQuery.data) {
+      return;
+    }
+
+    setHasInitialized(true);
+
+    // If there are no tasks, populate from next_steps analysis
+    if (tasksQuery.data.length === 0) {
       const nextStepsAnalysis = analyses.find((a) => a.sectionType === "next_steps");
       if (nextStepsAnalysis?.content?.steps) {
-        const initialTasks: Task[] = nextStepsAnalysis.content.steps.map(
-          (step: any, idx: number) => ({
-            id: `initial_${idx}`,
-            title: step.title,
-            description: step.description,
-            completed: false,
-            createdAt: new Date().toISOString(),
-          })
-        );
-        setTasks(initialTasks);
-        localStorage.setItem(`tasks_${ideaId}`, JSON.stringify(initialTasks));
+        const initialTasks = nextStepsAnalysis.content.steps.map((step: any, idx: number) => ({
+          title: step.title,
+          description: step.description,
+          order: idx,
+        }));
+
+        if (initialTasks.length > 0) {
+          bulkCreateTasksMutation.mutate(initialTasks);
+        }
       }
     }
-  }, [ideaId, analyses]);
-
-  // Save tasks to localStorage whenever they change
-  useEffect(() => {
-    if (tasks.length > 0) {
-      localStorage.setItem(`tasks_${ideaId}`, JSON.stringify(tasks));
-    }
-  }, [tasks, ideaId]);
+  }, [
+    tasksQuery.data,
+    tasksQuery.isLoading,
+    analyses,
+    bulkCreateTasksMutation,
+    hasInitialized,
+  ]);
 
   const addTask = () => {
     if (!newTaskTitle.trim()) return;
 
-    const newTask: Task = {
-      id: `task_${Date.now()}`,
-      title: newTaskTitle,
-      completed: false,
-      createdAt: new Date().toISOString(),
-    };
-
-    setTasks([...tasks, newTask]);
-    setNewTaskTitle("");
-    setIsAddingTask(false);
+    createTaskMutation.mutate(
+      {
+        title: newTaskTitle,
+        order: tasks.length,
+      },
+      {
+        onSuccess: () => {
+          setNewTaskTitle("");
+          setIsAddingTask(false);
+        },
+      }
+    );
   };
 
-  const toggleTask = (taskId: string) => {
-    setTasks(tasks.map((task) => (task.id === taskId ? { ...task, completed: !task.completed } : task)));
+  const toggleTask = (task: Task) => {
+    updateTaskMutation.mutate({
+      taskId: task.id,
+      data: { completed: !task.completed },
+    });
   };
 
   const deleteTask = (taskId: string) => {
-    setTasks(tasks.filter((task) => task.id !== taskId));
+    deleteTaskMutation.mutate(taskId);
   };
 
   const completedCount = tasks.filter((t) => t.completed).length;
   const totalCount = tasks.length;
+
+  if (tasksQuery.isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
+  if (tasksQuery.isError) {
+    return (
+      <div className="rounded-lg bg-red-50 p-4 text-red-800">
+        Failed to load tasks. Please try again.
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -96,7 +125,11 @@ export const TasksTab = ({ ideaId, analyses }: TasksTabProps) => {
                 )}
               </p>
             </div>
-            <Button onClick={() => setIsAddingTask(true)} size="sm">
+            <Button
+              onClick={() => setIsAddingTask(true)}
+              size="sm"
+              disabled={isAddingTask}
+            >
               <Plus size={16} className="mr-1" />
               Add Task
             </Button>
@@ -114,22 +147,39 @@ export const TasksTab = ({ ideaId, analyses }: TasksTabProps) => {
                 className="flex-1 rounded-lg border border-border bg-surface px-4 py-2 text-text-primary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-20"
                 autoFocus
               />
-              <Button onClick={addTask} size="sm">
+              <Button
+                onClick={addTask}
+                size="sm"
+                isLoading={createTaskMutation.isPending}
+                disabled={createTaskMutation.isPending}
+              >
                 Add
               </Button>
-              <Button onClick={() => setIsAddingTask(false)} variant="ghost" size="sm">
+              <Button
+                onClick={() => {
+                  setIsAddingTask(false);
+                  setNewTaskTitle("");
+                }}
+                variant="ghost"
+                size="sm"
+              >
                 Cancel
               </Button>
             </div>
           )}
 
-          {tasks.length === 0 ? (
+          {tasks.length === 0 && !bulkCreateTasksMutation.isPending ? (
             <div className="py-12 text-center">
               <ListTodo size={48} className="mx-auto mb-4 text-text-secondary opacity-50" />
               <p className="text-text-secondary">
                 No tasks yet. Add tasks to track your progress or they'll be automatically populated from your
                 analysis.
               </p>
+            </div>
+          ) : bulkCreateTasksMutation.isPending ? (
+            <div className="flex items-center justify-center py-12">
+              <LoadingSpinner size="sm" />
+              <span className="ml-3 text-text-secondary">Initializing tasks from analysis...</span>
             </div>
           ) : (
             <div className="space-y-2">
@@ -142,12 +192,14 @@ export const TasksTab = ({ ideaId, analyses }: TasksTabProps) => {
                   )}
                 >
                   <button
-                    onClick={() => toggleTask(task.id)}
+                    onClick={() => toggleTask(task)}
+                    disabled={updateTaskMutation.isPending}
                     className={cn(
                       "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition-colors",
                       task.completed
                         ? "border-primary bg-primary text-white"
-                        : "border-border hover:border-primary"
+                        : "border-border hover:border-primary",
+                      updateTaskMutation.isPending && "opacity-50 cursor-not-allowed"
                     )}
                   >
                     {task.completed && <Check size={14} />}
@@ -160,7 +212,11 @@ export const TasksTab = ({ ideaId, analyses }: TasksTabProps) => {
                   </div>
                   <button
                     onClick={() => deleteTask(task.id)}
-                    className="shrink-0 text-text-secondary opacity-0 transition-opacity hover:text-red-600 group-hover:opacity-100"
+                    disabled={deleteTaskMutation.isPending}
+                    className={cn(
+                      "shrink-0 text-text-secondary opacity-0 transition-opacity hover:text-red-600 group-hover:opacity-100",
+                      deleteTaskMutation.isPending && "opacity-50 cursor-not-allowed"
+                    )}
                   >
                     <Trash2 size={16} />
                   </button>
