@@ -135,6 +135,51 @@ export const googleKeywordsSchema = z.object({
 
 export type GoogleKeywordsContent = z.infer<typeof googleKeywordsSchema>;
 
+// Feature comparison content schema
+export const featureComparisonSchema = z.object({
+  features: z
+    .array(
+      z.object({
+        name: z.string().describe("Feature name (max 3 words, concise)"),
+        description: z.string().describe("Feature description (1-2 concise sentences)"),
+      })
+    )
+    .min(4)
+    .max(8)
+    .describe("4-8 core features for comparison"),
+  competitors: z
+    .array(
+      z.object({
+        name: z.string().describe("Competitor company name"),
+        url: z.string().url().describe("Competitor homepage URL"),
+        features: z
+          .array(
+            z.object({
+              featureName: z.string().describe("Feature name from the features list"),
+              hasFeature: z
+                .boolean()
+                .describe(
+                  "Whether competitor has this feature (only true if explicitly confirmed)"
+                ),
+              proofUrl: z
+                .string()
+                .url()
+                .nullable()
+                .describe(
+                  "Direct URL to page showing proof of feature (required if hasFeature is true)"
+                ),
+            })
+          )
+          .describe("Feature availability for this competitor"),
+      })
+    )
+    .min(3)
+    .max(5)
+    .describe("3-5 real competitors with validated feature evidence"),
+});
+
+export type FeatureComparisonContent = z.infer<typeof featureComparisonSchema>;
+
 // Export all schemas in a map for easy access
 export const analysisSchemas = {
   education: educationSchema,
@@ -145,4 +190,5 @@ export const analysisSchemas = {
   next_steps: nextStepsSchema,
   viability: viabilitySchema,
   google_keywords: googleKeywordsSchema,
+  feature_comparison: featureComparisonSchema,
 } as const;

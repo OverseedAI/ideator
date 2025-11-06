@@ -2,6 +2,7 @@ import { Analysis, AnalysisSectionType } from "@/types";
 import { EducationSectionComponent } from "../EducationSection";
 import { SwotSection } from "../SwotSection";
 import { FeaturesSection } from "../FeaturesSection";
+import { FeatureComparisonSection } from "../FeatureComparisonSection";
 import { GoogleKeywordsSection } from "../GoogleKeywordsSection";
 import { AnalysisSection } from "../AnalysisSection";
 import { ViabilitySection } from "../ViabilitySection";
@@ -43,6 +44,12 @@ export const AnalysisTab = ({ analyses, isAnalysisInProgress }: AnalysisTabProps
           isAnalysisInProgress && <SkeletonCard />
         )}
 
+        {getAnalysis("feature_comparison") ? (
+          <FeatureComparisonSection content={getAnalysis("feature_comparison")!.content} />
+        ) : (
+          isAnalysisInProgress && <SkeletonCard />
+        )}
+
         {getAnalysis("google_keywords") ? (
           <GoogleKeywordsSection content={getAnalysis("google_keywords")!.content} />
         ) : (
@@ -69,8 +76,7 @@ export const AnalysisTab = ({ analyses, isAnalysisInProgress }: AnalysisTabProps
               <div>
                 <h4 className="mb-3">Target Market</h4>
                 <p className="text-text-secondary mb-2">
-                  <strong>Size:</strong>{" "}
-                  {getAnalysis("business_values")!.content.targetMarket.size}
+                  <strong>Size:</strong> {getAnalysis("business_values")!.content.targetMarket.size}
                 </p>
                 <p className="text-text-secondary mb-2">
                   <strong>Segments:</strong>{" "}

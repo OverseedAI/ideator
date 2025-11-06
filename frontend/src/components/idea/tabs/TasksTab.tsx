@@ -55,13 +55,7 @@ export const TasksTab = ({ ideaId, analyses }: TasksTabProps) => {
         }
       }
     }
-  }, [
-    tasksQuery.data,
-    tasksQuery.isLoading,
-    analyses,
-    bulkCreateTasksMutation,
-    hasInitialized,
-  ]);
+  }, [tasksQuery.data, tasksQuery.isLoading, analyses, bulkCreateTasksMutation, hasInitialized]);
 
   const addTask = () => {
     if (!newTaskTitle.trim()) return;
@@ -134,11 +128,7 @@ export const TasksTab = ({ ideaId, analyses }: TasksTabProps) => {
                 )}
               </p>
             </div>
-            <Button
-              onClick={() => setIsAddingTask(true)}
-              size="sm"
-              disabled={isAddingTask}
-            >
+            <Button onClick={() => setIsAddingTask(true)} size="sm" disabled={isAddingTask}>
               <Plus size={16} className="mr-1" />
               Add Task
             </Button>
@@ -149,7 +139,10 @@ export const TasksTab = ({ ideaId, analyses }: TasksTabProps) => {
             <div className="mb-4 rounded-lg border border-border bg-background p-4">
               <div className="space-y-3">
                 <div>
-                  <label htmlFor="task-title" className="block text-sm font-medium text-text-primary mb-1">
+                  <label
+                    htmlFor="task-title"
+                    className="block text-sm font-medium text-text-primary mb-1"
+                  >
                     Title <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -163,7 +156,10 @@ export const TasksTab = ({ ideaId, analyses }: TasksTabProps) => {
                   />
                 </div>
                 <div>
-                  <label htmlFor="task-description" className="block text-sm font-medium text-text-primary mb-1">
+                  <label
+                    htmlFor="task-description"
+                    className="block text-sm font-medium text-text-primary mb-1"
+                  >
                     Description <span className="text-text-secondary text-xs">(optional)</span>
                   </label>
                   <textarea
@@ -196,8 +192,8 @@ export const TasksTab = ({ ideaId, analyses }: TasksTabProps) => {
             <div className="py-12 text-center">
               <ListTodo size={48} className="mx-auto mb-4 text-text-secondary opacity-50" />
               <p className="text-text-secondary">
-                No tasks yet. Add tasks to track your progress or they'll be automatically populated from your
-                analysis.
+                No tasks yet. Add tasks to track your progress or they'll be automatically populated
+                from your analysis.
               </p>
             </div>
           ) : bulkCreateTasksMutation.isPending ? (
@@ -229,7 +225,9 @@ export const TasksTab = ({ ideaId, analyses }: TasksTabProps) => {
                     {task.completed && <Check size={14} />}
                   </button>
                   <div className="flex-1 min-w-0">
-                    <h4 className={cn("text-text-primary", task.completed && "line-through")}>{task.title}</h4>
+                    <h4 className={cn("text-text-primary", task.completed && "line-through")}>
+                      {task.title}
+                    </h4>
                     {task.description && (
                       <p className="mt-1 text-sm text-text-secondary">{task.description}</p>
                     )}

@@ -30,7 +30,8 @@ export type AnalysisSectionType =
   | "pmf"
   | "next_steps"
   | "viability"
-  | "google_keywords";
+  | "google_keywords"
+  | "feature_comparison";
 
 // Analysis content structures
 export interface EducationContent {
@@ -107,4 +108,20 @@ export interface GoogleKeywordsContent {
   }[];
   summary: string;
   recommendations: string[];
+}
+
+export interface FeatureComparisonContent {
+  features: {
+    name: string;
+    description: string;
+  }[];
+  competitors: {
+    name: string;
+    url: string;
+    features: {
+      featureName: string;
+      hasFeature: boolean;
+      proofUrl: string | null;
+    }[];
+  }[];
 }

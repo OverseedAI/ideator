@@ -49,37 +49,33 @@ export const taskIdSchema = z.object({
 /**
  * Get all tasks for an idea
  */
-export const getIdeaTasks = asyncHandler(
-  async (req: AuthRequest, res: Response): Promise<void> => {
-    const userId = req.user!.userId;
-    const { ideaId } = req.params;
+export const getIdeaTasks = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
+  const userId = req.user!.userId;
+  const { ideaId } = req.params;
 
-    // Verify the user owns the idea
-    await ideaService.getIdeaById(ideaId, userId);
+  // Verify the user owns the idea
+  await ideaService.getIdeaById(ideaId, userId);
 
-    const tasks = await taskService.getIdeaTasks(ideaId);
+  const tasks = await taskService.getIdeaTasks(ideaId);
 
-    res.status(200).json(tasks);
-  }
-);
+  res.status(200).json(tasks);
+});
 
 /**
  * Create a new task for an idea
  */
-export const createTask = asyncHandler(
-  async (req: AuthRequest, res: Response): Promise<void> => {
-    const userId = req.user!.userId;
-    const { ideaId } = req.params;
-    const data = req.body;
+export const createTask = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
+  const userId = req.user!.userId;
+  const { ideaId } = req.params;
+  const data = req.body;
 
-    // Verify the user owns the idea
-    await ideaService.getIdeaById(ideaId, userId);
+  // Verify the user owns the idea
+  await ideaService.getIdeaById(ideaId, userId);
 
-    const task = await taskService.createTask(ideaId, data);
+  const task = await taskService.createTask(ideaId, data);
 
-    res.status(201).json(task);
-  }
-);
+  res.status(201).json(task);
+});
 
 /**
  * Bulk create tasks for an idea
@@ -102,34 +98,30 @@ export const bulkCreateTasks = asyncHandler(
 /**
  * Update a task
  */
-export const updateTask = asyncHandler(
-  async (req: AuthRequest, res: Response): Promise<void> => {
-    const userId = req.user!.userId;
-    const { ideaId, taskId } = req.params;
-    const data = req.body;
+export const updateTask = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
+  const userId = req.user!.userId;
+  const { ideaId, taskId } = req.params;
+  const data = req.body;
 
-    // Verify the user owns the idea
-    await ideaService.getIdeaById(ideaId, userId);
+  // Verify the user owns the idea
+  await ideaService.getIdeaById(ideaId, userId);
 
-    const task = await taskService.updateTask(taskId, data);
+  const task = await taskService.updateTask(taskId, data);
 
-    res.status(200).json(task);
-  }
-);
+  res.status(200).json(task);
+});
 
 /**
  * Delete a task
  */
-export const deleteTask = asyncHandler(
-  async (req: AuthRequest, res: Response): Promise<void> => {
-    const userId = req.user!.userId;
-    const { ideaId, taskId } = req.params;
+export const deleteTask = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
+  const userId = req.user!.userId;
+  const { ideaId, taskId } = req.params;
 
-    // Verify the user owns the idea
-    await ideaService.getIdeaById(ideaId, userId);
+  // Verify the user owns the idea
+  await ideaService.getIdeaById(ideaId, userId);
 
-    await taskService.deleteTask(taskId);
+  await taskService.deleteTask(taskId);
 
-    res.status(200).json({ message: "Task deleted successfully" });
-  }
-);
+  res.status(200).json({ message: "Task deleted successfully" });
+});

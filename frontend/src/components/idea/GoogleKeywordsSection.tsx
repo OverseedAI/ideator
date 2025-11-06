@@ -29,8 +29,7 @@ const competitionVariants = {
 export const GoogleKeywordsSection = ({ content }: GoogleKeywordsSectionProps) => {
   // Sort keywords by relevance score and take top 5
   const topKeywords = useMemo(
-    () =>
-      [...content.keywords].sort((a, b) => b.relevanceScore - a.relevanceScore).slice(0, 5),
+    () => [...content.keywords].sort((a, b) => b.relevanceScore - a.relevanceScore).slice(0, 5),
     [content.keywords]
   );
 
@@ -114,7 +113,9 @@ export const GoogleKeywordsSection = ({ content }: GoogleKeywordsSectionProps) =
                     <td className="px-4 py-3 text-sm font-medium text-text-primary">
                       {keyword.term}
                     </td>
-                    <td className="px-4 py-3 text-sm text-text-secondary">{keyword.searchVolume}</td>
+                    <td className="px-4 py-3 text-sm text-text-secondary">
+                      {keyword.searchVolume}
+                    </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <div

@@ -208,6 +208,57 @@ Focus on keywords that indicate purchase intent, problem awareness, or solution 
 `.trim();
 };
 
+export const createFeatureComparisonPrompt = (
+  ideaTitle: string,
+  ideaDescription: string
+): string => {
+  return `
+Create a competitive feature comparison for this business idea:
+
+Idea: ${ideaTitle}
+Description: ${ideaDescription}
+
+CRITICAL EVIDENCE RULES - YOU MUST FOLLOW THESE STRICTLY:
+
+1. FEATURE EXTRACTION:
+   - Identify exactly 4 to 8 features total
+   - Each feature name must be MAX 3 WORDS (will be table headers)
+   - Each feature must include a description (1-2 concise sentences)
+
+2. COMPETITOR RESEARCH:
+   - Use web search to find 3-5 REAL competitors currently operating in this space
+   - For each competitor, you MUST visit their actual website
+   - Record the competitor's homepage URL
+
+3. HARD EVIDENCE CONSTRAINT - THIS IS CRITICAL:
+   - For each competitor and each feature, you MUST validate through EXPLICIT website evidence
+   - Set hasFeature to TRUE only if you find EXPLICIT text/content on their website proving they have it
+   - Set hasFeature to FALSE if not explicitly confirmed
+   - If hasFeature is TRUE, you MUST provide the direct URL (proofUrl) to the exact page showing the proof
+     (this could be homepage, features page, docs page, pricing page, etc.)
+   - If hasFeature is FALSE, proofUrl should be null
+   - NO GUESSING. NO INFERENCE. NO "LIKELY". NO INDUSTRY ASSUMPTIONS.
+   - You are FORBIDDEN from inventing features or checkmarks
+
+4. VALIDATION PROCESS:
+   - Read actual website text from competitor sites
+   - Only assign hasFeature=true after finding explicit confirmation
+   - The proof must be clear text stating they offer this capability
+
+Examples of feature names:
+- "Real-time Sync"
+- "Offline Mode"
+- "AI Autocomplete"
+- "Role Access"
+- "Webhooks"
+- "Audit Trail"
+- "One Click Deploy"
+- "Schema Diffing"
+
+Remember: If you cannot find explicit evidence of a feature on the competitor's website, mark it as FALSE with null proofUrl.
+`.trim();
+};
+
 export type AnalysisPromptFunction = (
   ideaTitle: string,
   ideaDescription: string,
@@ -223,4 +274,5 @@ export const analysisPrompts = {
   next_steps: createNextStepsPrompt,
   viability: createViabilityPrompt,
   google_keywords: createGoogleKeywordsPrompt,
+  feature_comparison: createFeatureComparisonPrompt,
 };

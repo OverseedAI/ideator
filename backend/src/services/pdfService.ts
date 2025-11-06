@@ -606,7 +606,10 @@ function generatePdfHtml(idea: Idea, analyses: Analysis[]): string {
             <tr>
               <td><strong>${comp.competitor}</strong><br/><span style="font-size: 9pt; color: #6b7280;">${comp.url}</span></td>
               ${features.features
-                .map((f) => `<td>${comp.features[f] ? '<span class="check">✓</span>' : '<span class="cross">✗</span>'}</td>`)
+                .map(
+                  (f) =>
+                    `<td>${comp.features[f] ? '<span class="check">✓</span>' : '<span class="cross">✗</span>'}</td>`
+                )
                 .join("")}
             </tr>
           `

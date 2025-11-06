@@ -5,7 +5,13 @@ import { Button } from "@/components/common/Button";
 import { Badge } from "@/components/common/Badge";
 import { LoadingSpinner } from "@/components/common/LoadingSpinner";
 import { SkeletonCard } from "@/components/common/Skeleton";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/common/Card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/common/Card";
 import { Tabs, TabPanel } from "@/components/common/Tabs";
 import { AnalysisTab } from "@/components/idea/tabs/AnalysisTab";
 import { TasksTab } from "@/components/idea/tabs/TasksTab";
@@ -185,7 +191,10 @@ export const IdeaDetail = () => {
 
       <TabPanel isActive={activeTab === "analysis"}>
         {(analysesQuery.data?.length ?? 0) > 0 || isAnalysisInProgress ? (
-          <AnalysisTab analyses={analysesQuery.data ?? []} isAnalysisInProgress={isAnalysisInProgress} />
+          <AnalysisTab
+            analyses={analysesQuery.data ?? []}
+            isAnalysisInProgress={isAnalysisInProgress}
+          />
         ) : (
           <div className="py-12 text-center">
             <BarChart3 size={48} className="mx-auto mb-4 text-text-secondary opacity-50" />

@@ -42,11 +42,7 @@ export const errorHandler = (
   });
 };
 
-export const notFoundHandler = (
-  _req: Request,
-  res: Response,
-  _next: NextFunction
-): void => {
+export const notFoundHandler = (_req: Request, res: Response, _next: NextFunction): void => {
   res.status(404).json({
     error: "Route not found",
   });

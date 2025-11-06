@@ -46,11 +46,7 @@ export const useCreateTask = (ideaId: string) => {
 export const useBulkCreateTasks = (ideaId: string) => {
   const queryClient = useQueryClient();
 
-  return useMutation<
-    Task[],
-    Error,
-    { title: string; description?: string; order?: number }[]
-  >({
+  return useMutation<Task[], Error, { title: string; description?: string; order?: number }[]>({
     mutationFn: (tasks) => taskService.bulkCreateTasks(ideaId, tasks),
     onSuccess: () => {
       // Invalidate and refetch tasks list
