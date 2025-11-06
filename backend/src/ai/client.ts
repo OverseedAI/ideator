@@ -51,7 +51,7 @@ export const createAIClient = () => {
         ],
         temperature: 0.7,
         tools: {
-          web_search_preview: openai.tools.webSearchPreview({}),
+          web_search: openai.tools.webSearch({}),
         },
         stopWhen: stepCountIs(5), // Allow multi-step tool calling for web search
         experimental_output: Output.object({ schema }),
