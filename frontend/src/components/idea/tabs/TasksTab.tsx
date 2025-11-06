@@ -20,6 +20,7 @@ interface TasksTabProps {
 
 export const TasksTab = ({ ideaId, analyses }: TasksTabProps) => {
   const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [newTaskDescription, setNewTaskDescription] = useState("");
   const [isAddingTask, setIsAddingTask] = useState(false);
   const [hasInitialized, setHasInitialized] = useState(false);
 
@@ -68,15 +69,23 @@ export const TasksTab = ({ ideaId, analyses }: TasksTabProps) => {
     createTaskMutation.mutate(
       {
         title: newTaskTitle,
+        description: newTaskDescription.trim() || undefined,
         order: tasks.length,
       },
       {
         onSuccess: () => {
           setNewTaskTitle("");
+          setNewTaskDescription("");
           setIsAddingTask(false);
         },
       }
     );
+  };
+
+  const handleCancelAdd = () => {
+    setNewTaskTitle("");
+    setNewTaskDescription("");
+    setIsAddingTask(false);
   };
 
   const toggleTask = (task: Task) => {
@@ -137,34 +146,49 @@ export const TasksTab = ({ ideaId, analyses }: TasksTabProps) => {
         </CardHeader>
         <CardContent>
           {isAddingTask && (
-            <div className="mb-4 flex gap-2">
-              <input
-                type="text"
-                value={newTaskTitle}
-                onChange={(e) => setNewTaskTitle(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && addTask()}
-                placeholder="Enter task title..."
-                className="flex-1 rounded-lg border border-border bg-surface px-4 py-2 text-text-primary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-20"
-                autoFocus
-              />
-              <Button
-                onClick={addTask}
-                size="sm"
-                isLoading={createTaskMutation.isPending}
-                disabled={createTaskMutation.isPending}
-              >
-                Add
-              </Button>
-              <Button
-                onClick={() => {
-                  setIsAddingTask(false);
-                  setNewTaskTitle("");
-                }}
-                variant="ghost"
-                size="sm"
-              >
-                Cancel
-              </Button>
+            <div className="mb-4 rounded-lg border border-border bg-background p-4">
+              <div className="space-y-3">
+                <div>
+                  <label htmlFor="task-title" className="block text-sm font-medium text-text-primary mb-1">
+                    Title <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    id="task-title"
+                    type="text"
+                    value={newTaskTitle}
+                    onChange={(e) => setNewTaskTitle(e.target.value)}
+                    placeholder="Enter task title..."
+                    className="w-full rounded-lg border border-border bg-surface px-4 py-2 text-text-primary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-20"
+                    autoFocus
+                  />
+                </div>
+                <div>
+                  <label htmlFor="task-description" className="block text-sm font-medium text-text-primary mb-1">
+                    Description <span className="text-text-secondary text-xs">(optional)</span>
+                  </label>
+                  <textarea
+                    id="task-description"
+                    value={newTaskDescription}
+                    onChange={(e) => setNewTaskDescription(e.target.value)}
+                    placeholder="Add more details about this task..."
+                    rows={3}
+                    className="w-full rounded-lg border border-border bg-surface px-4 py-2 text-text-primary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-20 resize-none"
+                  />
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button onClick={handleCancelAdd} variant="ghost" size="sm">
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={addTask}
+                    size="sm"
+                    isLoading={createTaskMutation.isPending}
+                    disabled={createTaskMutation.isPending || !newTaskTitle.trim()}
+                  >
+                    Add Task
+                  </Button>
+                </div>
+              </div>
             </div>
           )}
 

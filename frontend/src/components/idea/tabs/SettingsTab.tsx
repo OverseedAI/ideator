@@ -4,7 +4,8 @@ import { Idea } from "@/types";
 import { Button } from "@/components/common/Button";
 import { Card, CardContent } from "@/components/common/Card";
 import { Settings, Trash2 } from "lucide-react";
-import { useUpdateIdea, useDeleteIdea } from "@/hooks/queries/useIdeas";
+import { useDeleteIdea } from "@/hooks/queries/useIdeas";
+import { EditIdeaTitleModal } from "@/components/idea/EditIdeaTitleModal";
 
 interface SettingsTabProps {
   idea: Idea;
@@ -12,36 +13,9 @@ interface SettingsTabProps {
 
 export const SettingsTab = ({ idea }: SettingsTabProps) => {
   const navigate = useNavigate();
-  const [editedTitle, setEditedTitle] = useState(idea.title);
-  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
-  const updateMutation = useUpdateIdea();
   const deleteMutation = useDeleteIdea();
-
-  const handleSaveTitle = () => {
-    if (!editedTitle.trim() || editedTitle === idea.title) {
-      setIsEditingTitle(false);
-      setEditedTitle(idea.title);
-      return;
-    }
-
-    updateMutation.mutate(
-      { id: idea.id, data: { title: editedTitle } },
-      {
-        onSuccess: () => {
-          setIsEditingTitle(false);
-        },
-        onError: () => {
-          alert("Failed to update idea title. Please try again.");
-        },
-      }
-    );
-  };
-
-  const handleCancelEdit = () => {
-    setEditedTitle(idea.title);
-    setIsEditingTitle(false);
-  };
 
   const handleDelete = () => {
     if (!confirm("Are you sure you want to delete this idea? This action cannot be undone.")) {
@@ -68,7 +42,7 @@ export const SettingsTab = ({ idea }: SettingsTabProps) => {
       <div className="space-y-4">
         {/* Idea Title Setting */}
         <Card>
-          <CardContent>
+          <CardContent className="py-6">
             <div className="flex items-start justify-between gap-8">
               <div className="flex-1">
                 <h3 className="text-base font-semibold text-text-primary mb-1">Idea Title</h3>
@@ -76,39 +50,10 @@ export const SettingsTab = ({ idea }: SettingsTabProps) => {
                   Update the title of your idea to better reflect your vision.
                 </p>
               </div>
-              <div className="min-w-0">
-                {isEditingTitle ? (
-                  <div className="space-y-3 w-64">
-                    <input
-                      type="text"
-                      value={editedTitle}
-                      onChange={(e) => setEditedTitle(e.target.value)}
-                      onKeyPress={(e) => e.key === "Enter" && handleSaveTitle()}
-                      className="w-full rounded-lg border border-border bg-surface px-4 py-2 text-text-primary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-opacity-20"
-                      autoFocus
-                    />
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={handleSaveTitle}
-                        size="sm"
-                        isLoading={updateMutation.isPending}
-                        disabled={updateMutation.isPending}
-                      >
-                        Save
-                      </Button>
-                      <Button onClick={handleCancelEdit} variant="ghost" size="sm">
-                        Cancel
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-3">
-                    <span className="text-text-primary">{idea.title}</span>
-                    <Button onClick={() => setIsEditingTitle(true)} variant="secondary" size="sm">
-                      Edit
-                    </Button>
-                  </div>
-                )}
+              <div>
+                <Button onClick={() => setIsEditModalOpen(true)} variant="secondary" size="sm">
+                  Edit
+                </Button>
               </div>
             </div>
           </CardContent>
@@ -116,13 +61,12 @@ export const SettingsTab = ({ idea }: SettingsTabProps) => {
 
         {/* Delete Idea Setting */}
         <Card>
-          <CardContent>
+          <CardContent className="py-6">
             <div className="flex items-start justify-between gap-8">
               <div className="flex-1">
                 <h3 className="text-base font-semibold text-text-primary mb-1">Delete Idea</h3>
                 <p className="text-sm text-text-secondary">
-                  Permanently delete this idea and all associated analysis. This action cannot be
-                  undone.
+                  Permanently delete this idea and all associated analysis. This action cannot be undone.
                 </p>
               </div>
               <div>
@@ -140,6 +84,12 @@ export const SettingsTab = ({ idea }: SettingsTabProps) => {
           </CardContent>
         </Card>
       </div>
+
+      <EditIdeaTitleModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        idea={idea}
+      />
     </div>
   );
 };
