@@ -68,7 +68,7 @@ export const SettingsTab = ({ idea }: SettingsTabProps) => {
       <div className="space-y-4">
         {/* Idea Title Setting */}
         <Card>
-          <CardContent className="py-6">
+          <CardContent>
             <div className="flex items-start justify-between gap-8">
               <div className="flex-1">
                 <h3 className="text-base font-semibold text-text-primary mb-1">Idea Title</h3>
@@ -116,12 +116,13 @@ export const SettingsTab = ({ idea }: SettingsTabProps) => {
 
         {/* Delete Idea Setting */}
         <Card>
-          <CardContent className="py-6">
+          <CardContent>
             <div className="flex items-start justify-between gap-8">
               <div className="flex-1">
                 <h3 className="text-base font-semibold text-text-primary mb-1">Delete Idea</h3>
                 <p className="text-sm text-text-secondary">
-                  Permanently delete this idea and all associated analysis. This action cannot be undone.
+                  Permanently delete this idea and all associated analysis. This action cannot be
+                  undone.
                 </p>
               </div>
               <div className="flex-1 flex justify-end">
