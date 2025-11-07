@@ -161,3 +161,11 @@ pnpm run docker:prod            # Run production containers
 
 ### Frontend (.env in frontend/)
 - `VITE_API_URL`: Backend API URL (default http://localhost:3000)
+
+## Coding Practices
+
+- If your code changes renders a function or variable obsolete, make sure to remove it.
+- In JavaScript/TypeScript, always prefer camelCase.
+- Always follow existing coding patterns in the codebase. For example, if the code uses a request client like Axios, then stick to using the established agent rather than calling the native `fetch` API.
+- Follow the 'less is more' paradigm where applicable. Strike a good balance between readability and succinctness of code.
+- In general, unless explicitly stated, follow best accessibility practices. When choosing colours, ensure best accessibility practices like sufficient colour contrast for readability.
