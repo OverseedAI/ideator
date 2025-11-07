@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { ChatMessage as ChatMessageType, ChatContext, ChatError } from "@/types";
-import { chatService } from "@/services/chat";
+import { streamChatWithEventSource } from "@/services/chatEventSource";
 import { cn } from "@/utils/cn";
 import { ChatMessage } from "./ChatMessage";
 import { ChatInput } from "./ChatInput";
@@ -23,6 +23,7 @@ export const ChatDrawer = ({ ideaId, isOpen, onClose, onAnalyticsEvent }: ChatDr
   const [isLoadingContext, setIsLoadingContext] = useState(true);
   const [lastUserMessage, setLastUserMessage] = useState<string>("");
   const [streamingContent, setStreamingContent] = useState<string>("");
+  const [isManualStop, setIsManualStop] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -84,7 +85,8 @@ export const ChatDrawer = ({ ideaId, isOpen, onClose, onAnalyticsEvent }: ChatDr
     setIsLoadingContext(true);
     setError(null);
     try {
-      const ctx = await chatService.getChatContext(ideaId);
+      const { getChatContext } = await import("@/services/chat");
+      const ctx = await getChatContext(ideaId);
       setContext(ctx);
 
       onAnalyticsEvent?.("chat_context_loaded", {
@@ -134,6 +136,7 @@ export const ChatDrawer = ({ ideaId, isOpen, onClose, onAnalyticsEvent }: ChatDr
   const startStreaming = async (message: string) => {
     setIsStreaming(true);
     setStreamingContent("");
+    setIsManualStop(false);
     const startTime = Date.now();
 
     // Create abort controller for this request
@@ -142,7 +145,7 @@ export const ChatDrawer = ({ ideaId, isOpen, onClose, onAnalyticsEvent }: ChatDr
 
     onAnalyticsEvent?.("chat_message_sent", { ideaId, messageLength: message.length });
 
-    await chatService.streamChat({
+    await streamChatWithEventSource({
       ideaId,
       message,
       conversationHistory: messages,
@@ -199,6 +202,7 @@ export const ChatDrawer = ({ ideaId, isOpen, onClose, onAnalyticsEvent }: ChatDr
         setMessages((prev) => [...prev, partialMessage]);
       }
 
+      setIsManualStop(true);
       setStreamingContent("");
       setIsStreaming(false);
       abortControllerRef.current = null;
@@ -357,11 +361,7 @@ export const ChatDrawer = ({ ideaId, isOpen, onClose, onAnalyticsEvent }: ChatDr
 
         {/* Error Banner */}
         {error && (
-          <ChatErrorBanner
-            error={error}
-            onRetry={handleRetry}
-            onDismiss={() => setError(null)}
-          />
+          <ChatErrorBanner error={error} onRetry={handleRetry} onDismiss={() => setError(null)} />
         )}
 
         {/* Streaming Controls */}
@@ -400,16 +400,20 @@ export const ChatDrawer = ({ ideaId, isOpen, onClose, onAnalyticsEvent }: ChatDr
         )}
 
         {/* Show Resume button if we have a last message and not streaming */}
-        {!isStreaming && lastUserMessage && streamingContent === "" && messages.length > 0 && (
-          <div className="px-4 py-2 bg-accent/20 border-t border-border flex items-center justify-center gap-2">
-            <button
-              onClick={handleResume}
-              className="px-3 py-1 bg-primary text-white text-sm font-medium rounded-md hover:bg-primary-dark transition-colors"
-            >
-              Resume
-            </button>
-          </div>
-        )}
+        {!isStreaming &&
+          lastUserMessage &&
+          isManualStop &&
+          streamingContent === "" &&
+          messages.length > 0 && (
+            <div className="px-4 py-2 bg-accent/20 border-t border-border flex items-center justify-center gap-2">
+              <button
+                onClick={handleResume}
+                className="px-3 py-1 bg-primary text-white text-sm font-medium rounded-md hover:bg-primary-dark transition-colors"
+              >
+                Resume
+              </button>
+            </div>
+          )}
 
         {/* Input */}
         <ChatInput onSend={handleSend} disabled={isStreaming || isLoadingContext} />

@@ -32,7 +32,7 @@ export const streamChat = async ({
   }
 
   try {
-    const response = await fetch(`${config.apiBaseUrl}/api/v1/ideas/${ideaId}/chat/stream`, {
+    const response = await fetch(`${config.apiBaseUrl}/ideas/${ideaId}/chat`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -51,6 +51,7 @@ export const streamChat = async ({
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
+      console.error("[Chat Service] Request failed:", errorData);
       onError({
         message: errorData.error || "Failed to stream chat",
         code: response.status,
@@ -59,22 +60,36 @@ export const streamChat = async ({
     }
 
     if (!response.body) {
+      console.error("[Chat Service] No response body");
       onError({ message: "No response body", code: 500 });
       return;
     }
 
+    console.log("[Chat Service] Starting to read stream...");
+    console.log("[Chat Service] response.body:", response.body);
+    console.log("[Chat Service] response.body.locked:", response.body.locked);
+
     const reader = response.body.getReader();
+    console.log("[Chat Service] Got reader, starting to read chunks...");
+
     const decoder = new TextDecoder();
     let buffer = "";
+    let currentEventType = "";
+    let chunkCount = 0;
+    let eventCount = 0;
 
     while (true) {
       const { done, value } = await reader.read();
 
       if (done) {
+        console.log("[Chat Service] Stream ended", { chunkCount, eventCount });
         break;
       }
 
-      buffer += decoder.decode(value, { stream: true });
+      chunkCount++;
+      const chunk = decoder.decode(value, { stream: true });
+
+      buffer += chunk;
       const lines = buffer.split("\n");
       buffer = lines.pop() || "";
 
@@ -84,7 +99,8 @@ export const streamChat = async ({
         }
 
         if (line.startsWith("event:")) {
-          continue; // Skip event type line
+          currentEventType = line.substring(6).trim();
+          continue;
         }
 
         if (line.startsWith("data:")) {
@@ -92,21 +108,27 @@ export const streamChat = async ({
 
           try {
             const data = JSON.parse(dataStr);
+            eventCount++;
 
-            // Determine event type from data or previous event line
-            if (data.text !== undefined) {
-              // Token event
+            // Handle based on event type
+            if (currentEventType === "token") {
               onToken(data.text, data.fullText);
-            } else if (data.fullText !== undefined && data.usage !== undefined) {
-              // Done event
+            } else if (currentEventType === "done") {
               onComplete(data.fullText, data.usage);
-            } else if (data.message && data.code) {
-              // Error event
+            } else if (currentEventType === "error") {
+              console.error("[Chat Service] Error event:", data);
               onError(data);
               return;
+            } else if (currentEventType === "start") {
+              // Start event - can be used for initialization if needed
+            } else {
+              console.warn("[Chat Service] Unknown event type:", currentEventType, data);
             }
+
+            // Reset event type after processing
+            currentEventType = "";
           } catch (parseError) {
-            console.error("Failed to parse SSE data:", dataStr, parseError);
+            console.error("[Chat Service] Failed to parse SSE data:", dataStr, parseError);
           }
         }
       }
@@ -134,7 +156,7 @@ export const getChatContext = async (ideaId: string): Promise<ChatContext> => {
     throw new Error("Not authenticated");
   }
 
-  const response = await fetch(`${config.apiBaseUrl}/api/v1/ideas/${ideaId}/chat/context`, {
+  const response = await fetch(`${config.apiBaseUrl}/ideas/${ideaId}/chat/context`, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${token}`,

@@ -4,7 +4,7 @@ import profileRoutes from "./profileRoutes";
 import ideaRoutes from "./ideaRoutes";
 import analysisRoutes from "./analysisRoutes";
 import taskRoutes from "./taskRoutes";
-import chatRoutes from "./chat";
+import chatRoutes from "./chatRoutes";
 
 const router: RouterType = Router();
 

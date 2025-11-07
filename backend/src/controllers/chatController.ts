@@ -38,6 +38,7 @@ export const streamChat = asyncHandler(async (req: AuthRequest, res: Response): 
   });
 
   if (!validation.success) {
+    console.error("[Chat Controller] Validation failed:", validation.error.errors);
     res.status(400).json({
       error: "Validation failed",
       details: validation.error.errors,
@@ -52,35 +53,43 @@ export const streamChat = asyncHandler(async (req: AuthRequest, res: Response): 
     timestamp: msg.timestamp ? new Date(msg.timestamp) : undefined,
   }));
 
-  // Set up SSE headers
-  res.status(200);
-  res.setHeader("Content-Type", "text/event-stream");
-  res.setHeader("Cache-Control", "no-cache");
-  res.setHeader("Connection", "keep-alive");
-  res.setHeader("X-Accel-Buffering", "no"); // Disable nginx buffering
-
-  // Flush headers
-  const flushHeaders = (res as Response & { flushHeaders?: () => void }).flushHeaders;
-  if (flushHeaders) {
-    flushHeaders.call(res);
-  } else {
-    res.write("\n");
-  }
-
-  const sendEvent = (event: string, data: unknown) => {
-    res.write(`event: ${event}\n`);
-    res.write(`data: ${JSON.stringify(data)}\n\n`);
-  };
-
-  let aborted = false;
-
-  // Handle client disconnect
-  req.on("close", () => {
-    aborted = true;
-    res.end();
+  // Set up SSE headers - use writeHead to send all at once
+  res.writeHead(200, {
+    "Content-Type": "text/event-stream; charset=utf-8",
+    "Cache-Control": "no-cache, no-transform",
+    Connection: "keep-alive",
+    "X-Accel-Buffering": "no",
+    // CORS headers for SSE
+    "Access-Control-Allow-Origin": req.headers.origin || "*",
+    "Access-Control-Allow-Credentials": "true",
   });
 
+  // Send initial comment to establish connection
+  res.write(": heartbeat\n\n");
+
+  const sendEvent = (event: string, data: unknown) => {
+    const eventStr = `event: ${event}\n`;
+    const dataStr = `data: ${JSON.stringify(data)}\n\n`;
+    console.log(`[Chat Controller] Sending event: ${event}`, data);
+    const written1 = res.write(eventStr);
+    const written2 = res.write(dataStr);
+    console.log(`[Chat Controller] Write status: ${written1}, ${written2}`);
+  };
+
+  const aborted = false;
+
+  // Handle client disconnect
+  // TODO: This seems to be called for no reason from the frontend, bring back later
+  // Check https://nodejs.org/api/http.html#class-httpclientrequest for potential solution
+  // req.on("close", (event) => {
+  //   console.log("[Chat Controller] Client disconnected:", event);
+  //   aborted = true;
+  // });
+
   try {
+    // Send start event IMMEDIATELY to keep connection alive
+    sendEvent("start", { timestamp: new Date().toISOString() });
+
     // Get streaming response
     const result = await chatService.streamChatResponse({
       ideaId,
@@ -89,20 +98,22 @@ export const streamChat = asyncHandler(async (req: AuthRequest, res: Response): 
       conversationHistory: parsedHistory,
     });
 
-    // Send start event
-    sendEvent("start", { timestamp: new Date().toISOString() });
-
     let fullText = "";
     let tokenCount = 0;
 
-    // Stream tokens
+    // Stream tokens - THIS MUST COMPLETE BEFORE FUNCTION RETURNS
     for await (const textPart of result.textStream) {
       if (aborted) {
+        console.log("[Chat Controller] Stream aborted by client");
         break;
       }
 
       fullText += textPart;
       tokenCount++;
+
+      if (tokenCount % 10 === 0) {
+        console.log(`[Chat Controller] Token ${tokenCount}, fullText length: ${fullText.length}`);
+      }
 
       sendEvent("token", {
         text: textPart,
@@ -111,22 +122,17 @@ export const streamChat = asyncHandler(async (req: AuthRequest, res: Response): 
       });
     }
 
-    if (!aborted) {
-      // Send completion event with usage stats
-      const usage = await result.usage;
 
+    if (!aborted) {
+      // Send completion event
       sendEvent("done", {
         fullText,
         tokenCount,
-        usage: {
-          promptTokens: usage?.promptTokens || 0,
-          completionTokens: usage?.completionTokens || 0,
-          totalTokens: usage?.totalTokens || 0,
-        },
         timestamp: new Date().toISOString(),
       });
     }
   } catch (error: any) {
+    console.error("[Chat Controller] Error during streaming:", error);
     if (!aborted) {
       sendEvent("error", {
         message: error.message || "An error occurred during chat generation",

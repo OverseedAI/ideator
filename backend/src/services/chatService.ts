@@ -1,8 +1,8 @@
 import { openai } from "@ai-sdk/openai";
-import { streamText, CoreMessage } from "ai";
+import { CoreMessage, streamText } from "ai";
 import { config } from "../config";
-import { prisma } from "../db/prisma";
-import { AppError } from "../utils/errors";
+import { prisma } from "../db";
+import { AppError } from "../middleware/errorHandler";
 
 export interface ChatContext {
   ideaId: string;
@@ -50,10 +50,7 @@ const buildContextString = (context: ChatContext): string => {
 /**
  * Fetch Idea context including analyses
  */
-export const getIdeaContext = async (
-  ideaId: string,
-  userId: string
-): Promise<ChatContext> => {
+export const getIdeaContext = async (ideaId: string, userId: string): Promise<ChatContext> => {
   const idea = await prisma.idea.findFirst({
     where: {
       id: ideaId,
@@ -69,7 +66,7 @@ export const getIdeaContext = async (
   });
 
   if (!idea) {
-    throw new AppError("Idea not found", 404);
+    throw new AppError(404, "Idea not found");
   }
 
   // Build analysis summaries
@@ -80,7 +77,7 @@ export const getIdeaContext = async (
 
     switch (analysis.sectionType) {
       case "education":
-        summary = `Keywords and terminology for the ${idea.name} industry`;
+        summary = `Keywords and terminology for the ${idea.title} industry`;
         break;
       case "swot":
         summary = `SWOT analysis with ${content.strengths?.length || 0} strengths, ${content.weaknesses?.length || 0} weaknesses`;
@@ -119,7 +116,7 @@ export const getIdeaContext = async (
 
   return {
     ideaId: idea.id,
-    ideaName: idea.name,
+    ideaName: idea.title,
     ideaDescription: idea.description,
     analyses,
   };
@@ -163,13 +160,19 @@ Important:
   ];
 
   // Generate streaming response
-  const model = openai(config.ai.model);
 
-  const result = await streamText({
-    model,
-    messages,
-    temperature: 0.7,
-  });
+  try {
+    const model = openai(config.ai.model);
 
-  return result;
+    const result = streamText({
+      model,
+      messages,
+      temperature: 0.7,
+    });
+
+    return result;
+  } catch (error) {
+    console.error("[Chat Service] Error in streamChatResponse:", error);
+    throw error;
+  }
 };
