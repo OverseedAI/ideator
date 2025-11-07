@@ -12,15 +12,34 @@ datasource db {
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
-  password  String
+  password  String?  // Optional for OAuth users
   name      String
   profileData Json?  @map("profile_data") // { expertise, funding, followers, linkedInUrl, etc. }
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   ideas     Idea[]
+  oauthAccounts OAuthAccount[]
 
   @@map("users")
+}
+
+model OAuthAccount {
+  id           String   @id @default(uuid())
+  userId       String   @map("user_id")
+  provider     String   // google, facebook, etc.
+  providerId   String   @map("provider_id") // User ID from OAuth provider
+  accessToken  String?  @map("access_token") @db.Text
+  refreshToken String?  @map("refresh_token") @db.Text
+  expiresAt    DateTime? @map("expires_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerId])
+  @@index([userId])
+  @@map("oauth_accounts")
 }
 
 model Idea {

@@ -2,6 +2,7 @@ import { Navigate, RouteObject } from "react-router-dom";
 import { AppLayout } from "./components/layout/AppLayout";
 import { Login } from "./pages/Login";
 import { Signup } from "./pages/Signup";
+import AuthCallback from "./pages/AuthCallback";
 import { Dashboard } from "./pages/app/Dashboard";
 import { NewIdea } from "./pages/app/NewIdea";
 import { IdeaDetail } from "./pages/app/IdeaDetail";
@@ -16,6 +17,10 @@ export const routes: RouteObject[] = [
   {
     path: "/signup",
     element: <Signup />,
+  },
+  {
+    path: "/auth/callback",
+    element: <AuthCallback />,
   },
   {
     path: "/app",

@@ -11,6 +11,7 @@ import {
 } from "@/components/common/Card";
 import { useSignup } from "@/hooks/queries/useAuth";
 import { getErrorMessage } from "@/utils/error";
+import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 
 export const Signup = () => {
   const [name, setName] = useState("");
@@ -47,6 +48,17 @@ export const Signup = () => {
             {errorMessage && (
               <div className="rounded-lg bg-red-50 p-3 text-sm text-red-800">{errorMessage}</div>
             )}
+
+            <GoogleSignInButton text="Sign up with Google" />
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white px-2 text-gray-500">Or continue with email</span>
+              </div>
+            </div>
 
             <Input
               type="text"

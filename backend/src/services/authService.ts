@@ -58,6 +58,11 @@ export const login = async (data: LoginData) => {
     throw new AppError(401, "Invalid credentials");
   }
 
+  // Check if user has a password (OAuth-only users don't have passwords)
+  if (!user.password) {
+    throw new AppError(401, "This account uses social login. Please sign in with Google.");
+  }
+
   const isPasswordValid = await comparePassword(data.password, user.password);
 
   if (!isPasswordValid) {
@@ -95,5 +100,125 @@ export const getMe = async (userId: string) => {
     name: user.name,
     profileData: user.profileData,
     createdAt: user.createdAt,
+  };
+};
+
+interface OAuthData {
+  provider: string;
+  providerId: string;
+  email: string;
+  name: string;
+  accessToken?: string;
+  refreshToken?: string;
+  expiresAt?: Date;
+}
+
+export const oauthLogin = async (data: OAuthData) => {
+  // Check if OAuth account already exists
+  const existingOAuthAccount = await prisma.oAuthAccount.findUnique({
+    where: {
+      provider_providerId: {
+        provider: data.provider,
+        providerId: data.providerId,
+      },
+    },
+    include: {
+      user: true,
+    },
+  });
+
+  if (existingOAuthAccount) {
+    // Update OAuth account tokens
+    await prisma.oAuthAccount.update({
+      where: { id: existingOAuthAccount.id },
+      data: {
+        accessToken: data.accessToken,
+        refreshToken: data.refreshToken,
+        expiresAt: data.expiresAt,
+      },
+    });
+
+    const token = generateToken({
+      userId: existingOAuthAccount.user.id,
+      email: existingOAuthAccount.user.email,
+    });
+
+    return {
+      user: {
+        id: existingOAuthAccount.user.id,
+        email: existingOAuthAccount.user.email,
+        name: existingOAuthAccount.user.name,
+        profileData: existingOAuthAccount.user.profileData,
+      },
+      token,
+    };
+  }
+
+  // Check if user with this email already exists
+  const existingUser = await prisma.user.findUnique({
+    where: { email: data.email },
+  });
+
+  if (existingUser) {
+    // Merge accounts: Link OAuth account to existing user
+    await prisma.oAuthAccount.create({
+      data: {
+        userId: existingUser.id,
+        provider: data.provider,
+        providerId: data.providerId,
+        accessToken: data.accessToken,
+        refreshToken: data.refreshToken,
+        expiresAt: data.expiresAt,
+      },
+    });
+
+    const token = generateToken({
+      userId: existingUser.id,
+      email: existingUser.email,
+    });
+
+    return {
+      user: {
+        id: existingUser.id,
+        email: existingUser.email,
+        name: existingUser.name,
+        profileData: existingUser.profileData,
+      },
+      token,
+      merged: true, // Indicate that accounts were merged
+    };
+  }
+
+  // Create new user with OAuth account
+  const newUser = await prisma.user.create({
+    data: {
+      email: data.email,
+      name: data.name,
+      password: null, // No password for OAuth-only users
+      oauthAccounts: {
+        create: {
+          provider: data.provider,
+          providerId: data.providerId,
+          accessToken: data.accessToken,
+          refreshToken: data.refreshToken,
+          expiresAt: data.expiresAt,
+        },
+      },
+    },
+  });
+
+  const token = generateToken({
+    userId: newUser.id,
+    email: newUser.email,
+  });
+
+  return {
+    user: {
+      id: newUser.id,
+      email: newUser.email,
+      name: newUser.name,
+      profileData: newUser.profileData,
+    },
+    token,
   };
 };

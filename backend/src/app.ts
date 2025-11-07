@@ -4,6 +4,7 @@ import helmet from "helmet";
 import { config } from "./config";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
 import v1Routes from "./routes/v1";
+import passport from "./config/passport";
 
 export const createApp = (): Application => {
   const app = express();
@@ -22,6 +23,9 @@ export const createApp = (): Application => {
   // Body parsing
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
+
+  // Initialize passport
+  app.use(passport.initialize());
 
   // Health check
   app.get("/health", (_req, res) => {

@@ -79,15 +79,26 @@ pnpm run docker:prod            # Run production containers
   - `generateStructuredOutput()`: For type-safe JSON responses with Zod schemas
 
 **Database Models** (schema.prisma):
-- `User`: Authentication + profile data (JSON field storing expertise, funding, followers, LinkedIn)
+- `User`: Authentication + profile data (JSON field storing expertise, funding, followers, LinkedIn). Password is optional for OAuth-only users.
+- `OAuthAccount`: OAuth provider accounts linked to users (supports Google and other providers). Stores provider tokens and refresh tokens.
 - `Idea`: User's business ideas with status (pending, analyzing, completed, failed)
 - `Analysis`: AI-generated analysis sections linked to ideas (7 types: education, swot, features, business_values, pmf, next_steps, viability)
 
 **API Endpoints**:
 - `/api/v1/auth/*`: Login, signup, get current user
+- `/api/v1/auth/google`: Initiate Google OAuth flow
+- `/api/v1/auth/google/callback`: Google OAuth callback (redirects to frontend with token)
 - `/api/v1/profile`: Get/update user profile
 - `/api/v1/ideas/*`: CRUD operations for ideas
 - `/api/v1/ideas/:id/analyses`: Trigger analysis, get all analyses for an idea
+
+**OAuth Flow**:
+1. User clicks "Sign in with Google" → redirects to `/api/v1/auth/google`
+2. User authenticates with Google → Google redirects to `/api/v1/auth/google/callback`
+3. Backend processes OAuth data, creates/merges user account, generates JWT
+4. Backend redirects to frontend `/auth/callback?token=...&user=...`
+5. Frontend stores token and user data, redirects to dashboard
+6. Account merging: If email matches existing user, OAuth account is linked to that user
 
 **Analysis Flow** (analysisService.ts):
 1. User submits idea → status: "pending"
@@ -158,6 +169,10 @@ pnpm run docker:prod            # Run production containers
 - `OPENAI_API_KEY`: OpenAI API key for AI SDK
 - `CORS_ALLOWED_ORIGINS`: Comma-separated allowed origins
 - `PORT`: Server port (default 3000)
+- `GOOGLE_CLIENT_ID`: Google OAuth client ID (for social authentication)
+- `GOOGLE_CLIENT_SECRET`: Google OAuth client secret (for social authentication)
+- `GOOGLE_CALLBACK_URL`: Google OAuth callback URL (default http://localhost:3000/api/v1/auth/google/callback)
+- `FRONTEND_URL`: Frontend URL for OAuth redirects (default http://localhost:5173)
 
 ### Frontend (.env in frontend/)
 - `VITE_API_URL`: Backend API URL (default http://localhost:3000)
