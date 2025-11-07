@@ -143,3 +143,32 @@ export interface ApiError {
   error: string;
   details?: any;
 }
+
+// Chat types
+export interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+  timestamp: Date;
+}
+
+export interface ChatContext {
+  ideaId: string;
+  ideaName: string;
+  ideaDescription: string;
+  analyses: {
+    id: string;
+    title: string;
+    summary: string;
+  }[];
+}
+
+export interface ChatStreamEvent {
+  type: "start" | "token" | "done" | "error";
+  data: any;
+}
+
+export interface ChatError {
+  message: string;
+  code?: number;
+  requestId?: string;
+}
