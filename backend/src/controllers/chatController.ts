@@ -122,7 +122,6 @@ export const streamChat = asyncHandler(async (req: AuthRequest, res: Response): 
       });
     }
 
-
     if (!aborted) {
       // Send completion event
       sendEvent("done", {
