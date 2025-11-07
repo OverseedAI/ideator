@@ -12,11 +12,13 @@ import { TasksTab } from "@/components/idea/tabs/TasksTab";
 import { SocialMediaTab } from "@/components/idea/tabs/SocialMediaTab";
 import { LeadsTab } from "@/components/idea/tabs/LeadsTab";
 import { SettingsTab } from "@/components/idea/tabs/SettingsTab";
-import { Lightbulb, Download, BarChart3, ListTodo, Share2, Users, Settings } from "lucide-react";
+import { ChatDrawer } from "@/components/chat/ChatDrawer";
+import { Lightbulb, Download, BarChart3, ListTodo, Share2, Users, Settings, MessageSquare } from "lucide-react";
 import { useIdea } from "@/hooks/queries/useIdeas";
 import { useAnalyses } from "@/hooks/queries/useAnalyses";
 import { getErrorMessage } from "@/utils/error";
 import { exportIdeaToPdf } from "@/services/ideaService";
+import { cn } from "@/utils/cn";
 
 const statusVariants: Record<Idea["status"], "default" | "warning" | "success" | "error"> = {
   pending: "default",
@@ -38,6 +40,7 @@ export const IdeaDetail = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [isChatDrawerOpen, setIsChatDrawerOpen] = useState(false);
 
   const activeTab = searchParams.get("tab") || "analysis";
 
@@ -211,6 +214,35 @@ export const IdeaDetail = () => {
       <TabPanel isActive={activeTab === "settings"}>
         <SettingsTab idea={idea} />
       </TabPanel>
+
+      {/* Floating Chat Toggle Button */}
+      <button
+        onClick={() => setIsChatDrawerOpen(true)}
+        className={cn(
+          "fixed bottom-6 right-6 z-30",
+          "w-14 h-14 rounded-full bg-primary text-white shadow-elevated",
+          "flex items-center justify-center",
+          "hover:bg-primary-dark hover:scale-110 transition-all duration-200",
+          "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
+          isChatDrawerOpen && "opacity-0 pointer-events-none"
+        )}
+        aria-label="Open AI chat"
+      >
+        <MessageSquare size={24} />
+      </button>
+
+      {/* Chat Drawer */}
+      {id && (
+        <ChatDrawer
+          ideaId={id}
+          isOpen={isChatDrawerOpen}
+          onClose={() => setIsChatDrawerOpen(false)}
+          onAnalyticsEvent={(event, data) => {
+            // Analytics integration placeholder
+            console.log("Analytics event:", event, data);
+          }}
+        />
+      )}
     </div>
   );
 };
