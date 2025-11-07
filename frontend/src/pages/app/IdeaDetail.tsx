@@ -12,7 +12,8 @@ import { TasksTab } from "@/components/idea/tabs/TasksTab";
 import { SocialMediaTab } from "@/components/idea/tabs/SocialMediaTab";
 import { LeadsTab } from "@/components/idea/tabs/LeadsTab";
 import { SettingsTab } from "@/components/idea/tabs/SettingsTab";
-import { Lightbulb, Download, BarChart3, ListTodo, Share2, Users, Settings } from "lucide-react";
+import { ChatDrawer } from "@/components/idea/ChatDrawer";
+import { Lightbulb, Download, BarChart3, ListTodo, Share2, Users, Settings, MessageSquare } from "lucide-react";
 import { useIdea } from "@/hooks/queries/useIdeas";
 import { useAnalyses } from "@/hooks/queries/useAnalyses";
 import { getErrorMessage } from "@/utils/error";
@@ -38,6 +39,7 @@ export const IdeaDetail = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   const activeTab = searchParams.get("tab") || "analysis";
 
@@ -132,17 +134,27 @@ export const IdeaDetail = () => {
         <Button variant="ghost" onClick={() => navigate("/app")}>
           ← Back to Dashboard
         </Button>
-        {idea?.status === "completed" && activeTab === "analysis" && (
+        <div className="flex items-center gap-3">
+          {idea?.status === "completed" && activeTab === "analysis" && (
+            <Button
+              variant="secondary"
+              onClick={handleExportPdf}
+              isLoading={isExportingPdf}
+              disabled={isExportingPdf}
+            >
+              <Download size={16} className="mr-2" />
+              Export as PDF
+            </Button>
+          )}
           <Button
             variant="secondary"
-            onClick={handleExportPdf}
-            isLoading={isExportingPdf}
-            disabled={isExportingPdf}
+            onClick={() => setIsChatOpen(true)}
+            title="Open AI Chat Assistant"
           >
-            <Download size={16} className="mr-2" />
-            Export as PDF
+            <MessageSquare size={20} className="mr-2" />
+            Chat
           </Button>
-        )}
+        </div>
       </div>
 
       <Card className="mb-8">
@@ -211,6 +223,9 @@ export const IdeaDetail = () => {
       <TabPanel isActive={activeTab === "settings"}>
         <SettingsTab idea={idea} />
       </TabPanel>
+
+      {/* Chat Drawer */}
+      {id && <ChatDrawer ideaId={id} isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />}
     </div>
   );
 };
