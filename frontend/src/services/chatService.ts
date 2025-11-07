@@ -22,7 +22,7 @@ export const streamChatResponse = async (
   const token = authStorage.getToken();
 
   try {
-    const response = await fetch(`${config.apiBaseUrl}/api/v1/ideas/${ideaId}/chat`, {
+    const response = await fetch(`${config.apiBaseUrl}/ideas/${ideaId}/chat`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

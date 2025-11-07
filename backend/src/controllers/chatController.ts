@@ -31,5 +31,5 @@ export const chat = asyncHandler(async (req: AuthRequest, res: Response) => {
   res.setHeader("Connection", "keep-alive");
 
   // Pipe the stream to the response
-  result.pipeDataStreamToResponse(res);
+  result.pipeTextStreamToResponse(res);
 });
