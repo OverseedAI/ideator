@@ -10,17 +10,39 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  name      String
-  profileData Json?  @map("profile_data") // { expertise, funding, followers, linkedInUrl, etc. }
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id            String   @id @default(uuid())
+  email         String   @unique
+  password      String?  // Optional for OAuth users
+  name          String
+  emailVerified Boolean  @default(false) @map("email_verified") // For secure account linking
+  profileData   Json?    @map("profile_data") // { expertise, funding, followers, linkedInUrl, etc. }
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
 
-  ideas     Idea[]
+  ideas            Idea[]
+  providerAccounts ProviderAccount[]
 
   @@map("users")
+}
+
+model ProviderAccount {
+  id                String    @id @default(uuid())
+  userId            String    @map("user_id")
+  provider          String    // "google", etc.
+  providerAccountId String    @map("provider_account_id") // User's ID from the provider
+  email             String    // Email from provider for linking
+  accessToken       String?   @map("access_token") @db.Text // OAuth access token
+  refreshToken      String?   @map("refresh_token") @db.Text // OAuth refresh token (if needed)
+  expiresAt         DateTime? @map("expires_at") // Token expiration
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@index([provider, email])
+  @@map("provider_accounts")
 }
 
 model Idea {
