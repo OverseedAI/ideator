@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/common/Card";
 import * as authService from "@/services/authService";
@@ -10,9 +10,15 @@ export const OAuthCallback = () => {
   const navigate = useNavigate();
   const [status, setStatus] = useState<"processing" | "success" | "error">("processing");
   const [errorMessage, setErrorMessage] = useState("");
+  const hasProcessed = useRef(false);
 
   useEffect(() => {
     const handleCallback = async () => {
+      // Prevent double execution in StrictMode
+      if (hasProcessed.current) {
+        return;
+      }
+      hasProcessed.current = true;
       try {
         const code = searchParams.get("code");
         const state = searchParams.get("state");
@@ -34,6 +40,7 @@ export const OAuthCallback = () => {
 
         // Verify state
         const storedState = sessionStorage.getItem("oauth_state");
+
         if (!storedState || storedState !== state) {
           throw new Error("Invalid state parameter. Possible CSRF attack.");
         }
