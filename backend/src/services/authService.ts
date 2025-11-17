@@ -30,6 +30,7 @@ export const signup = async (data: SignupData) => {
       email: data.email,
       password: hashedPassword,
       name: data.name,
+      emailVerified: true, // Password users are considered verified for backward compatibility
     },
   });
 

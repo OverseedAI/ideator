@@ -23,6 +23,12 @@ const configSchema = z.object({
   cors: z.object({
     allowedOrigins: z.array(z.string()).default(["http://localhost:5173"]),
   }),
+
+  google: z.object({
+    clientId: z.string().optional(),
+    clientSecret: z.string().optional(),
+    redirectUri: z.string().optional(),
+  }),
 });
 
 const parseConfig = () => {
@@ -41,6 +47,11 @@ const parseConfig = () => {
     },
     cors: {
       allowedOrigins: process.env.ALLOWED_ORIGINS?.split(",") || undefined,
+    },
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      redirectUri: process.env.GOOGLE_REDIRECT_URI,
     },
   };
 

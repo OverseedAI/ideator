@@ -9,6 +9,7 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/common/Card";
+import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 import { useSignup } from "@/hooks/queries/useAuth";
 import { getErrorMessage } from "@/utils/error";
 
@@ -43,55 +44,68 @@ export const Signup = () => {
           <CardDescription>Start evaluating your business ideas today</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {errorMessage && (
-              <div className="rounded-lg bg-red-50 p-3 text-sm text-red-800">{errorMessage}</div>
-            )}
+          <div className="space-y-4">
+            <GoogleSignInButton />
 
-            <Input
-              type="text"
-              label="Name"
-              placeholder="Your name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-border" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-surface px-2 text-text-secondary">Or continue with email</span>
+              </div>
+            </div>
 
-            <Input
-              type="email"
-              label="Email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {errorMessage && (
+                <div className="rounded-lg bg-red-50 p-3 text-sm text-red-800">{errorMessage}</div>
+              )}
 
-            <Input
-              type="password"
-              label="Password"
-              placeholder="At least 8 characters"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={8}
-            />
+              <Input
+                type="text"
+                label="Name"
+                placeholder="Your name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
 
-            <Button
-              type="submit"
-              className="w-full"
-              isLoading={isSubmitting}
-              disabled={isSubmitting}
-            >
-              Sign up
-            </Button>
+              <Input
+                type="email"
+                label="Email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
 
-            <p className="text-center text-sm text-text-secondary">
-              Already have an account?{" "}
-              <Link to="/login" className="font-medium text-primary hover:underline">
-                Sign in
-              </Link>
-            </p>
-          </form>
+              <Input
+                type="password"
+                label="Password"
+                placeholder="At least 8 characters"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={8}
+              />
+
+              <Button
+                type="submit"
+                className="w-full"
+                isLoading={isSubmitting}
+                disabled={isSubmitting}
+              >
+                Sign up
+              </Button>
+
+              <p className="text-center text-sm text-text-secondary">
+                Already have an account?{" "}
+                <Link to="/login" className="font-medium text-primary hover:underline">
+                  Sign in
+                </Link>
+              </p>
+            </form>
+          </div>
         </CardContent>
       </Card>
     </div>
